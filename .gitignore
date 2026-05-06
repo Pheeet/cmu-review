@@ -34,3 +34,14 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# agents and knowledge graph
+.agents/
+graphify-out/
+skills-lock.json
+
+# temporary scripts and data
+combined_valid.json
+fix_neon_schema.js
+import_neon_courses.js
+setup_database.js
