@@ -82,14 +82,14 @@ function FilterBar({
   credits, setCredits,
   sort, setSort,
   faculties, creditOptions,
-  count, total,
+  count,
 }: {
   query: string; setQuery: (v: string) => void;
   faculty: string; setFaculty: (v: string) => void;
   credits: string; setCredits: (v: string) => void;
   sort: SortKey; setSort: (v: SortKey) => void;
   faculties: string[]; creditOptions: number[];
-  count: number; total: number;
+  count: number;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -394,7 +394,7 @@ export function MainPage({ initialCourses, initialStats }: MainPageProps) {
           credits={credits} setCredits={setCredits}
           sort={sort} setSort={setSort}
           faculties={faculties} creditOptions={creditOptions}
-          count={filtered.length} total={courses.length}
+          count={filtered.length}
         />
 
         {/* Grid */}

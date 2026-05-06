@@ -39,7 +39,7 @@ export function CourseModal({ course, onClose, onReviewAdded }: CourseModalProps
     if (saved) {
       try {
         setLikedReviews(JSON.parse(saved));
-      } catch (e) {
+      } catch {
         setLikedReviews({});
       }
     }
@@ -56,6 +56,7 @@ export function CourseModal({ course, onClose, onReviewAdded }: CourseModalProps
   useEffect(() => {
     fetchReviews();
     checkFingerprintAndStatus();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [course.id]);
 
   const fetchReviews = async () => {
@@ -170,7 +171,7 @@ export function CourseModal({ course, onClose, onReviewAdded }: CourseModalProps
       } else {
         toast.error('เกิดข้อผิดพลาดในการแจ้งปัญหา');
       }
-    } catch (error) {
+    } catch {
       toast.error('เกิดข้อผิดพลาดในการแจ้งปัญหา');
     }
   };
