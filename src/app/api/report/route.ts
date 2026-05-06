@@ -3,6 +3,8 @@ import { db } from '@/db';
 import { reviews as reviewsTable } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: Request) {
   try {
     const { reviewId } = await request.json();
