@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { MainPage } from '@/components/MainPage';
 import { db } from '@/db';
 import { courses as coursesTable, reviews as reviewsTable } from '@/db/schema';
