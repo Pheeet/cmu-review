@@ -18,6 +18,8 @@ interface MainPageProps {
 
 type SortKey = 'code' | 'reviews' | 'name' | 'grade';
 
+import { useDebounce } from 'use-debounce';
+
 // ─── Headless dropdown ─────────────────────────────────────────────
 import { Listbox, Transition } from '@headlessui/react';
 import { Check } from 'lucide-react';
@@ -221,7 +223,7 @@ export function MainPage({
 
   // Filter/sort state
   const [query, setQuery] = useState('');
-  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [debouncedQuery] = useDebounce(query, 300);
   const [faculty, setFaculty] = useState('all');
   const [credits, setCredits] = useState('all');
   const [sort, setSort] = useState<SortKey>('code');
@@ -231,14 +233,6 @@ export function MainPage({
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(initialCourses.length < initialTotalCount);
   const isFirstRender = useRef(true);
-
-  // Debounce search
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedQuery(query);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [query]);
 
   // Fetch courses when filters change
   useEffect(() => {
