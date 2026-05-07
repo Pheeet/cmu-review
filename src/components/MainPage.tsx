@@ -261,26 +261,35 @@ export function MainPage({
       isFirstRender.current = false;
       return;
     }
-    fetchData(1, true);
+    fetchData(1, true, { 
+      search: debouncedQuery, 
+      faculty, 
+      credits, 
+      sort 
+    });
   }, [debouncedQuery, faculty, credits, sort]);
 
-  async function fetchData(pageNum: number, isNewSearch: boolean) {
+  async function fetchData(
+    pageNum: number, 
+    isNewSearch: boolean,
+    params?: { search?: string; faculty?: string; credits?: string; sort?: string }
+  ) {
     if (isNewSearch) {
       setCourses([]);
       setPage(1);
     }
     setLoading(true);
     try {
-      const params = new URLSearchParams({
-        search: debouncedQuery,
-        faculty,
-        credits,
-        sort,
+      const searchParams = new URLSearchParams({
+        search: params?.search ?? debouncedQuery,
+        faculty: params?.faculty ?? faculty,
+        credits: params?.credits ?? credits,
+        sort: params?.sort ?? sort,
         page: pageNum.toString(),
         limit: '24',
       });
 
-      const res = await fetch(`/api/courses?${params.toString()}`);
+      const res = await fetch(`/api/courses?${searchParams.toString()}`);
       if (res.ok) {
         const data = await res.json();
         if (isNewSearch) {
@@ -303,7 +312,7 @@ export function MainPage({
 
   const handleLoadMore = () => {
     if (!loading && hasMore) {
-      fetchData(page + 1, false);
+      fetchData(page + 1, false, { search: debouncedQuery, faculty, credits, sort });
     }
   };
 
