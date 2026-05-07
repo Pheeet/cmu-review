@@ -81,6 +81,7 @@ export function CourseModal({ course, onClose }: { course: Course; onClose: () =
 
   const checkFingerprintAndStatus = async () => {
     try {
+      // 1. Check LocalStorage first (Most reliable for the current user)
       const localDoneStr = localStorage.getItem('cmureview_done');
       if (localDoneStr) {
         const localDone = JSON.parse(localDoneStr);
@@ -91,14 +92,25 @@ export function CourseModal({ course, onClose }: { course: Course; onClose: () =
         }
       }
 
-      const fp = await fpPromise.load();
-      const result = await fp.get();
+      // 2. Set a timeout for FingerprintJS to avoid hanging in In-App Browsers
+      const fpPromiseWithTimeout = Promise.race([
+        fpPromise.load().then(fp => fp.get()),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 2500))
+      ]) as Promise<any>;
+
+      const result = await fpPromiseWithTimeout;
       const currentVisitorId = result.visitorId;
       localStorage.setItem('cmureview_fp', currentVisitorId);
 
+      // 3. Check DB
       const hasReviewedDb = await checkFingerprintReview(course.id, currentVisitorId);
+      
+      // IMPORTANT: If DB says they reviewed but local storage doesn't,
+      // and they are in a potentially colliding environment, we be lenient on visibility
+      // but strict on submission. For now, we trust DB but handle it gracefully.
       if (hasReviewedDb) {
         setHasReviewed(true);
+        // Sync local storage if DB says yes
         const currentDoneStr = localStorage.getItem('cmureview_done');
         const currentDone = currentDoneStr ? JSON.parse(currentDoneStr) : {};
         currentDone[course.id] = true;
@@ -107,7 +119,10 @@ export function CourseModal({ course, onClose }: { course: Course; onClose: () =
         setHasReviewed(false);
       }
     } catch (err) {
-      console.error('Error checking fingerprint', err);
+      console.warn('Review status check skipped or timed out', err);
+      // If it fails or times out, we assume they haven't reviewed yet 
+      // to let them see the button (UX First)
+      setHasReviewed(false);
     } finally {
       setIsChecking(false);
     }
