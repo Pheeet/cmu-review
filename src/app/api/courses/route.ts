@@ -32,8 +32,7 @@ export async function GET(request: Request) {
     }
 
     if (credits !== 'all') {
-      // credits stored as string like "3(3-0-6)" — use ilike match
-      conditions.push(ilike(coursesTable.credits, `${credits}%`));
+      conditions.push(eq(coursesTable.credits, parseInt(credits)));
     }
 
     const statsSubquery = db.select({
