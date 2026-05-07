@@ -26,6 +26,7 @@ export function CourseModal({ course, onClose }: { course: Course; onClose: () =
   
   const [likedReviews, setLikedReviews] = useState<Record<string, boolean>>({});
   const [reportingId, setReportingId] = useState<string | null>(null);
+  const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
     const saved = localStorage.getItem('cmureview_liked');
@@ -85,6 +86,7 @@ export function CourseModal({ course, onClose }: { course: Course; onClose: () =
         const localDone = JSON.parse(localDoneStr);
         if (localDone[course.id]) {
           setHasReviewed(true);
+          setIsChecking(false);
           return;
         }
       }
@@ -101,9 +103,13 @@ export function CourseModal({ course, onClose }: { course: Course; onClose: () =
         const currentDone = currentDoneStr ? JSON.parse(currentDoneStr) : {};
         currentDone[course.id] = true;
         localStorage.setItem('cmureview_done', JSON.stringify(currentDone));
+      } else {
+        setHasReviewed(false);
       }
     } catch (err) {
       console.error('Error checking fingerprint', err);
+    } finally {
+      setIsChecking(false);
     }
   };
 
@@ -401,7 +407,11 @@ export function CourseModal({ course, onClose }: { course: Course; onClose: () =
           className="sticky bottom-0 border-t border-neutral-100 bg-white px-4 py-3"
           style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
         >
-          {!hasReviewed ? (
+          {isChecking ? (
+            <div className="flex justify-center py-2">
+              <div className="w-full max-w-sm h-12 bg-neutral-100 animate-pulse rounded-xl" />
+            </div>
+          ) : !hasReviewed ? (
             <div className="flex justify-center">
               <button
                 onClick={() => setIsReviewModalOpen(true)}
