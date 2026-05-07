@@ -299,17 +299,23 @@ export function CourseModal({ course, onClose }: { course: Course; onClose: () =
                       </div>
 
                       <div className="flex flex-wrap gap-1.5 items-center">
-                        <span className="text-xs font-bold bg-green-50 text-green-700 px-2.5 py-1 rounded-full border border-green-100">
-                          เกรด {review.grade}
-                        </span>
-                        <span className="text-xs font-medium bg-neutral-50 text-neutral-500 px-2.5 py-1 rounded-full border border-neutral-200 flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          ปี {review.academic_year} เทอม {review.semester}
-                        </span>
-                        <span className="text-xs font-medium bg-neutral-50 text-neutral-500 px-2.5 py-1 rounded-full border border-neutral-200 flex items-center gap-1">
-                          <Tag className="w-3 h-3" />
-                          {review.section_type}
-                        </span>
+                        {review.grade !== 'ไม่ระบุ' && (
+                          <span className="text-xs font-bold bg-green-50 text-green-700 px-2.5 py-1 rounded-full border border-green-100">
+                            เกรด {review.grade}
+                          </span>
+                        )}
+                        {review.semester !== 'ไม่ระบุ' && (
+                          <span className="text-xs font-medium bg-neutral-50 text-neutral-500 px-2.5 py-1 rounded-full border border-neutral-200 flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            ปี {review.academic_year} เทอม {review.semester}
+                          </span>
+                        )}
+                        {review.section_type !== 'ไม่ระบุ' && (
+                          <span className="text-xs font-medium bg-neutral-50 text-neutral-500 px-2.5 py-1 rounded-full border border-neutral-200 flex items-center gap-1">
+                            <Tag className="w-3 h-3" />
+                            {review.section_type}
+                          </span>
+                        )}
                       </div>
                     </div>
 
