@@ -136,12 +136,12 @@ export async function likeReview(reviewId: string) {
       return { success: false, error: 'คุณไลก์รีวิวนี้ไปแล้ว' };
     }
 
-    await db.transaction(async (tx) => {
-      await tx.insert(review_likes).values({ review_id: reviewId, ip });
-      await tx.update(reviewsTable)
+    await Promise.all([
+      db.insert(review_likes).values({ review_id: reviewId, ip }),
+      db.update(reviewsTable)
         .set({ like_count: sql`${reviewsTable.like_count} + 1` })
-        .where(eq(reviewsTable.id, reviewId));
-    });
+        .where(eq(reviewsTable.id, reviewId))
+    ]);
 
     return { success: true };
   } catch (error) {
@@ -168,13 +168,13 @@ export async function unlikeReview(reviewId: string) {
       return { success: false };
     }
 
-    await db.transaction(async (tx) => {
-      await tx.delete(review_likes)
-        .where(and(eq(review_likes.review_id, reviewId), eq(review_likes.ip, ip)));
-      await tx.update(reviewsTable)
+    await Promise.all([
+      db.delete(review_likes)
+        .where(and(eq(review_likes.review_id, reviewId), eq(review_likes.ip, ip))),
+      db.update(reviewsTable)
         .set({ like_count: sql`GREATEST(${reviewsTable.like_count} - 1, 0)` })
-        .where(eq(reviewsTable.id, reviewId));
-    });
+        .where(eq(reviewsTable.id, reviewId))
+    ]);
 
     return { success: true };
   } catch (error) {

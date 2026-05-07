@@ -34,19 +34,17 @@ export async function POST(request: Request) {
 
     const newCount = (review.report_count || 0) + 1;
 
-    await db.transaction(async (tx) => {
-      // 1. Log the report
-      await tx.insert(review_reports).values({ review_id: reviewId, ip });
+    // 1. Log the report
+    await db.insert(review_reports).values({ review_id: reviewId, ip });
 
-      // 2. Update or Delete the review
-      if (newCount >= 15) {
-        await tx.delete(reviewsTable).where(eq(reviewsTable.id, reviewId));
-      } else {
-        await tx.update(reviewsTable)
-          .set({ report_count: newCount })
-          .where(eq(reviewsTable.id, reviewId));
-      }
-    });
+    // 2. Update or Delete the review
+    if (newCount >= 15) {
+      await db.delete(reviewsTable).where(eq(reviewsTable.id, reviewId));
+    } else {
+      await db.update(reviewsTable)
+        .set({ report_count: newCount })
+        .where(eq(reviewsTable.id, reviewId));
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {
