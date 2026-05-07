@@ -502,7 +502,7 @@ export function MainPage({
 
           <button
             onClick={() => setIsSupportOpen(true)}
-            className="p-2.5 border border-neutral-300 rounded-full text-neutral-400 hover:bg-white hover:text-[#9E76B4] hover:border-[#9E76B4] transition-all shadow-sm active:scale-95 flex items-center justify-center"
+            className="p-2.5 border border-neutral-300 rounded-xl text-neutral-400 hover:bg-white hover:text-[#9E76B4] hover:border-[#9E76B4] transition-all shadow-sm active:scale-95 flex items-center justify-center"
             title="สนับสนุนค่าข้าวเที่ยงผู้พัฒนา"
           >
             <Coffee className="w-5 h-5" />
