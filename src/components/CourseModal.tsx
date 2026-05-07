@@ -319,30 +319,34 @@ export function CourseModal({ course, onClose }: { course: Course; onClose: () =
                       </div>
                     </div>
 
-                    <p className="text-neutral-700 text-sm leading-relaxed whitespace-pre-wrap break-words pl-0 sm:pl-11">
-                      {review.comment}
-                    </p>
+                    <div className="flex flex-col gap-4">
+                      <p className="text-neutral-700 text-sm leading-relaxed whitespace-pre-wrap break-words pl-0 sm:pl-11">
+                        {review.comment}
+                      </p>
 
-                    <div className="absolute bottom-4 right-4 flex items-center gap-3">
-                      <button
-                        onClick={() => handleLike(review.id)}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all active:scale-95 ${
-                          likedReviews[review.id]
-                            ? 'bg-purple-50 text-[#9E76B4]'
-                            : 'bg-neutral-50 text-neutral-400 hover:bg-purple-50 hover:text-[#9E76B4]'
-                        }`}
-                      >
-                        <ThumbsUp className={`w-3.5 h-3.5 ${likedReviews[review.id] ? 'fill-current' : ''}`} />
-                        <span>{review.like_count || 0}</span>
-                      </button>
+                      <div className="flex items-center justify-between pt-3 border-t border-neutral-50 sm:ml-11">
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => handleLike(review.id)}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all active:scale-95 ${
+                              likedReviews[review.id]
+                                ? 'bg-purple-50 text-[#9E76B4]'
+                                : 'bg-neutral-50 text-neutral-400 hover:bg-purple-50 hover:text-[#9E76B4]'
+                            }`}
+                          >
+                            <ThumbsUp className={`w-3.5 h-3.5 ${likedReviews[review.id] ? 'fill-current' : ''}`} />
+                            <span>{review.like_count || 0}</span>
+                          </button>
+                        </div>
 
-                      <button
-                        onClick={() => handleReport(review.id)}
-                        className="text-[10px] font-medium text-neutral-400 hover:text-red-500 transition-colors flex items-center"
-                      >
-                        <AlertTriangle className="w-3 h-3 mr-1" />
-                        แจ้งปัญหา
-                      </button>
+                        <button
+                          onClick={() => handleReport(review.id)}
+                          className="text-[10px] font-medium text-neutral-400 hover:text-red-500 transition-colors flex items-center"
+                        >
+                          <AlertTriangle className="w-3 h-3 mr-1" />
+                          แจ้งปัญหา
+                        </button>
+                      </div>
                     </div>
 
                     {/* Confirmation Overlay for Reporting */}
