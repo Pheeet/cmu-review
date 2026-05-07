@@ -462,7 +462,7 @@ export function MainPage({
 
           {/* Card grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            <AnimatePresence mode="popLayout">
+            <AnimatePresence mode="wait">
               {loading && courses.length === 0 ? (
                 Array.from({ length: 24 }).map((_, i) => (
                   <motion.div
@@ -477,7 +477,7 @@ export function MainPage({
               ) : (
                 courses.map((c, i) => (
                   <motion.div
-                    key={`${c.id}-${i}`}
+                    key={c.id}
                     layout
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}

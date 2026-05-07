@@ -15,24 +15,19 @@ interface CourseCardProps {
 
 export function CourseCard({ course, reviewCount, avgGrade, onClick }: CourseCardProps) {
   const fc = getFacultyColor(course.faculty);
-  const cardRef = useRef<HTMLDivElement>(null);
 
   return (
     <motion.div
-      ref={cardRef}
       onClick={onClick}
-      // 1. Lift on hover — Framer Motion spring
-      whileHover={{ y: -4, transition: { duration: 0.2, ease: 'easeOut' } }}
+      layout="position"
+      whileHover={{ 
+        y: -4, 
+        borderColor: fc.border,
+        transition: { duration: 0.2, ease: 'easeOut' } 
+      }}
       whileTap={{ scale: 0.98, transition: { duration: 0.1 } }}
-      // 2. Shadow grows via Tailwind group-hover, border tints via JS
-      className="group relative bg-white rounded-2xl border shadow-sm hover:shadow-lg cursor-pointer flex flex-col h-full transition-shadow duration-200"
+      className="group relative bg-white rounded-2xl border shadow-sm hover:shadow-lg cursor-pointer flex flex-col h-full transition-all duration-200"
       style={{ borderColor: '#E8E8E6' }}
-      onHoverStart={() => {
-        if (cardRef.current) cardRef.current.style.borderColor = fc.border;
-      }}
-      onHoverEnd={() => {
-        if (cardRef.current) cardRef.current.style.borderColor = '#E8E8E6';
-      }}
     >
       <div className="p-5 flex flex-col h-full">
         {/* Code pill + credits */}
