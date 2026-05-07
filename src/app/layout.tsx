@@ -9,8 +9,30 @@ const sarabun = Sarabun({
 })
 
 export const metadata: Metadata = {
-  title: 'รีวิวตัวฟรีมช.',
-  description: 'รีวิวตัวฟรีของมหาวิทยาลัยเชียงใหม่',
+  title: 'รีวิวตัวฟรี มช.',
+  description: 'รีวิวตัวฟรีของมหาวิทยาลัยเชียงใหม่ ค้นหาและอ่านรีวิวจากรุ่นพี่ก่อนลงทะเบียน',
+  openGraph: {
+    title: 'รีวิวตัวฟรี มช.',
+    description: 'รีวิวตัวฟรีของมหาวิทยาลัยเชียงใหม่ ค้นหาและอ่านรีวิวจากรุ่นพี่ก่อนลงทะเบียน',
+    url: 'https://cmu-review.vercel.app',
+    siteName: 'รีวิวตัวฟรี มช.',
+    images: [
+      {
+        url: 'https://cmu-review.vercel.app/og-image.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'รีวิวตัวฟรี มช.',
+      }
+    ],
+    locale: 'th_TH',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'รีวิวตัวฟรี มช.',
+    description: 'รีวิวตัวฟรีของมหาวิทยาลัยเชียงใหม่',
+    images: ['https://cmu-review.vercel.app/og-image.jpg'],
+  },
 }
 
 export default function RootLayout({
