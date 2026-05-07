@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     siteName: 'รีวิวตัวฟรี มช.',
     images: [
       {
-        url: 'https://cmu-review.vercel.app/og-image.jpg',
+        url: 'https://cmu-review.vercel.app/og-image.png',
         width: 1200,
         height: 630,
         alt: 'รีวิวตัวฟรี มช.',
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'รีวิวตัวฟรี มช.',
     description: 'รีวิวตัวฟรีของมหาวิทยาลัยเชียงใหม่',
-    images: ['https://cmu-review.vercel.app/og-image.jpg'],
+    images: ['https://cmu-review.vercel.app/og-image.png'],
   },
 }
 
