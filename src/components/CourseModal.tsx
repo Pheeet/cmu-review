@@ -147,6 +147,9 @@ export function CourseModal({ course, onClose }: { course: Course; onClose: () =
         fetch(`/api/reviews?courseId=${course.id}`)
           .then(res => res.json())
           .then(data => setReviews(data));
+      } else if (res.status === 429) {
+        toast.error('คุณได้แจ้งปัญหาสำหรับรีวิวนี้ไปแล้ว');
+        setReportingId(null);
       } else {
         toast.error('เกิดข้อผิดพลาดในการแจ้งปัญหา');
       }
@@ -184,7 +187,7 @@ export function CourseModal({ course, onClose }: { course: Course; onClose: () =
       else { delete rolledBackLiked[reviewId]; }
       setLikedReviews(rolledBackLiked);
       localStorage.setItem('cmureview_liked', JSON.stringify(rolledBackLiked));
-      toast.error('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
+      toast.error(result.error || 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
     }
   };
 
