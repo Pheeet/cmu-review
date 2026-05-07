@@ -163,9 +163,11 @@ function FilterBar({
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.8 }}
                       onClick={() => { setQuery(''); inputRef.current?.focus(); }}
-                      className="absolute right-1.5 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-neutral-400 hover:text-neutral-700 transition-colors rounded-lg hover:bg-neutral-100"
+                      className="absolute right-1 inset-y-0 w-9 flex items-center justify-center text-neutral-400 hover:text-neutral-700 transition-colors group/clear"
                     >
-                      <X className="w-4 h-4" />
+                      <div className="w-7 h-7 flex items-center justify-center rounded-lg group-hover/clear:bg-neutral-100">
+                        <X className="w-4 h-4" />
+                      </div>
                     </motion.button>
                   )}
                 </AnimatePresence>
