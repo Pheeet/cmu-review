@@ -204,13 +204,13 @@ export function CourseModal({ course, onClose }: { course: Course; onClose: () =
 
       {/* Modal */}
       <motion.div
-        initial={{ opacity: 0, y: 100 }}
+        initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 100 }}
-        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-        className="relative rounded-t-3xl sm:rounded-2xl shadow-2xl w-full max-w-3xl h-[92vh] sm:h-auto sm:max-h-[90vh] flex flex-col overflow-hidden bg-[#F9F8F6]"
+        exit={{ opacity: 0, y: 40 }}
+        transition={{ duration: 0.25, ease: [0.32, 0.72, 0, 1] }}
+        className="relative rounded-t-3xl sm:rounded-2xl shadow-2xl w-full max-w-3xl h-[92vh] sm:h-auto sm:max-h-[90vh] flex flex-col bg-[#F9F8F6]"
       >
-        <div className="overflow-y-auto flex-1 pb-4">
+        <div className="overflow-y-auto overflow-x-hidden flex-1 pb-4 rounded-t-3xl sm:rounded-t-2xl">
           {/* Mobile Handle */}
           <div className="sm:hidden flex justify-center pt-2 pb-1">
             <div className="w-10 h-1 bg-neutral-300 rounded-full" />
