@@ -27,5 +27,28 @@ export const reviews = pgTable('reviews', {
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });
 
+export const rate_limit_logs = pgTable('rate_limit_logs', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  ip: text('ip').notNull(),
+  action: text('action').notNull(),
+  created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
+});
+
+export const review_likes = pgTable('review_likes', {
+  review_id: uuid('review_id').notNull().references(() => reviewsTable.id, { onDelete: 'cascade' }),
+  ip: text('ip').notNull(),
+  created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
+});
+
+export const review_reports = pgTable('review_reports', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  review_id: uuid('review_id').notNull().references(() => reviewsTable.id, { onDelete: 'cascade' }),
+  ip: text('ip').notNull(),
+  created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
+});
+
 export type Course = typeof courses.$inferSelect;
 export type Review = typeof reviews.$inferSelect;
+export type RateLimitLog = typeof rate_limit_logs.$inferSelect;
+export type ReviewLike = typeof review_likes.$inferSelect;
+export type ReviewReport = typeof review_reports.$inferSelect;

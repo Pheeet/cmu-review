@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, GraduationCap, ChevronDown, SlidersHorizontal, X } from 'lucide-react';
+import { Search, GraduationCap, ChevronDown, SlidersHorizontal, X, Coffee } from 'lucide-react';
 import { CourseCard } from '@/components/CourseCard';
 import { CourseModal } from '@/components/CourseModal';
 import { Course } from '@/types';
@@ -11,6 +11,9 @@ import { Toaster } from 'react-hot-toast';
 interface MainPageProps {
   initialCourses: Course[];
   initialStats: Record<string, { count: number; avg: string | null }>;
+  initialTotalCount: number;
+  faculties: string[];
+  creditOptions: number[];
 }
 
 type SortKey = 'code' | 'reviews' | 'name' | 'grade';
@@ -34,8 +37,8 @@ function Dropdown<T extends string>({
   const label = options.find(o => o.value === value)?.label ?? value;
   return (
     <Listbox value={value} onChange={onChange}>
-      <div className="relative">
-        <Listbox.Button className="flex items-center gap-2 h-11 px-3 pr-8 w-full sm:w-auto text-sm text-neutral-700 font-medium rounded-xl hover:bg-neutral-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#9E76B4]/40 cursor-pointer">
+      <div className="relative w-full">
+        <Listbox.Button className="flex items-center gap-2 h-11 px-3 pr-8 w-full md:w-auto text-sm text-neutral-700 font-medium rounded-xl hover:bg-neutral-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#9E76B4]/40 cursor-pointer border border-neutral-200 md:border-transparent md:hover:border-transparent bg-neutral-50 md:bg-transparent">
           {icon && <span className="text-neutral-400 flex-shrink-0">{icon}</span>}
           <span className="truncate flex-1 text-left">{label}</span>
           <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-400" />
@@ -137,54 +140,61 @@ function FilterBar({
 
         {/* Row 2: controls inside a white card */}
         <div className="bg-white rounded-2xl border border-neutral-200 shadow-sm px-4 py-3">
-          <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+          <div className="flex flex-col md:flex-row gap-2 items-stretch md:items-center">
 
-            {/* Search — flex-1 */}
-            <div className="relative flex-1 min-w-0">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" />
-              <input
-                ref={inputRef}
-                type="text"
-                value={query}
-                onChange={e => setQuery(e.target.value)}
-                placeholder="ค้นหารหัสวิชา หรือชื่อวิชา..."
-                className="w-full h-11 pl-10 pr-10 bg-neutral-50 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#9E76B4]/20 focus:border-[#9E76B4] transition-all"
-              />
-              <AnimatePresence>
-                {query && (
-                  <motion.button
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.8 }}
-                    onClick={() => { setQuery(''); inputRef.current?.focus(); }}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-700 transition-colors"
-                  >
-                    <X className="w-4 h-4" />
-                  </motion.button>
-                )}
-              </AnimatePresence>
+            {/* Row 1 on Mobile: Search + Faculty */}
+            <div className="flex flex-row gap-2 md:flex-1 md:items-center md:gap-2">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" />
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={query}
+                  onChange={e => setQuery(e.target.value)}
+                  placeholder="ค้นหาวิชา..."
+                  className="w-full h-11 pl-10 pr-10 bg-neutral-50 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#9E76B4]/20 focus:border-[#9E76B4] transition-all"
+                />
+                <AnimatePresence>
+                  {query && (
+                    <motion.button
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      onClick={() => { setQuery(''); inputRef.current?.focus(); }}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-700 transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                    </motion.button>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              <div className="w-28 md:w-auto flex-shrink-0">
+                <Dropdown
+                  value={faculty}
+                  onChange={setFaculty}
+                  options={facultyOptions}
+                />
+              </div>
             </div>
 
             {/* Divider */}
-            <div className="hidden sm:block w-px h-6 bg-neutral-200 self-center" />
+            <div className="hidden md:block w-px h-6 bg-neutral-200 self-center" />
 
-            {/* Dropdowns */}
-            <Dropdown
-              value={faculty}
-              onChange={setFaculty}
-              options={facultyOptions}
-            />
-            <Dropdown
-              value={credits}
-              onChange={setCredits}
-              options={creditOpts}
-            />
-            <Dropdown
-              value={sort}
-              onChange={setSort}
-              options={sortOptions}
-              icon={<SlidersHorizontal className="w-3.5 h-3.5" />}
-            />
+            {/* Row 2 on Mobile: Credits + Sort */}
+            <div className="grid grid-cols-2 gap-2 md:flex md:items-center md:gap-2">
+              <Dropdown
+                value={credits}
+                onChange={setCredits}
+                options={creditOpts}
+              />
+              <Dropdown
+                value={sort}
+                onChange={setSort}
+                options={sortOptions}
+                icon={<SlidersHorizontal className="w-3.5 h-3.5" />}
+              />
+            </div>
 
           </div>
         </div>
@@ -195,50 +205,95 @@ function FilterBar({
 }
 
 // ─── Main component ────────────────────────────────────────────────
-export function MainPage({ initialCourses, initialStats }: MainPageProps) {
+export function MainPage({
+  initialCourses,
+  initialStats,
+  initialTotalCount,
+  faculties,
+  creditOptions
+}: MainPageProps) {
   const [courses, setCourses] = useState<Course[]>(initialCourses);
   const [reviewStats, setReviewStats] = useState(initialStats);
+  const [totalCount, setTotalCount] = useState(initialTotalCount);
   const [selected, setSelected] = useState<Course | null>(null);
+  const [isSupportOpen, setIsSupportOpen] = useState(false);
+  const [localQuery, setLocalQuery] = useState('');
 
   // Filter/sort state
   const [query, setQuery] = useState('');
-  const [localQuery, setLocalQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const [faculty, setFaculty] = useState('all');
   const [credits, setCredits] = useState('all');
   const [sort, setSort] = useState<SortKey>('code');
 
-  const handleSearch = (q: string) => {
-    const val = q.trim();
-    if (val) {
-      setQuery(val);
-      // Latch logic will hide hero
-      window.scrollTo({ top: 0, behavior: 'instant' });
-    } else {
-      document.getElementById('courses')?.scrollIntoView({ behavior: 'smooth' });
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(initialCourses.length < initialTotalCount);
+  const isFirstRender = useRef(true);
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(query);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  // Fetch courses when filters change
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    fetchData(1, true);
+  }, [debouncedQuery, faculty, credits, sort]);
+
+  async function fetchData(pageNum: number, isNewSearch: boolean) {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({
+        search: debouncedQuery,
+        faculty,
+        credits,
+        sort,
+        page: pageNum.toString(),
+        limit: '24',
+      });
+
+      const res = await fetch(`/api/courses?${params.toString()}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (isNewSearch) {
+          setCourses(data.courses);
+          setReviewStats(data.stats);
+          setTotalCount(data.totalCount);
+        } else {
+          setCourses(prev => [...prev, ...data.courses]);
+          setReviewStats(prev => ({ ...prev, ...data.stats }));
+        }
+        setHasMore(data.hasMore);
+        setPage(pageNum);
+      }
+    } catch (error) {
+      console.error('Fetch failed:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const handleLoadMore = () => {
+    if (!loading && hasMore) {
+      fetchData(page + 1, false);
     }
   };
 
-
-  async function loadAll() {
-    try {
-      const res = await fetch('/api/courses');
-      if (res.ok) {
-        const { courses: c, stats: s } = await res.json();
-        setCourses(c);
-        setReviewStats(s);
-      }
-    } catch { }
-  }
-
-  const faculties = useMemo(() => {
-    const s = new Set(courses.map(c => c.faculty).filter(Boolean) as string[]);
-    return Array.from(s).sort();
-  }, [courses]);
-
-  const creditOptions = useMemo(() => {
-    const s = new Set(courses.map(c => c.credits).filter((v): v is number => v !== null));
-    return Array.from(s).sort((a, b) => a - b);
-  }, [courses]);
+  const handleSearch = (q: string) => {
+    setQuery(q);
+    if (q.trim()) {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
+  };
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -373,14 +428,16 @@ export function MainPage({ initialCourses, initialStats }: MainPageProps) {
               </div>
             </div>
 
-            <button
-              onClick={() => document.getElementById('courses')?.scrollIntoView({ behavior: 'smooth' })}
-              className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5 text-white/60 hover:text-white transition-colors animate-bounce cursor-pointer z-10"
-              aria-label="เลื่อนไปดูรายวิชา"
-            >
-              <span className="text-xs font-medium tracking-wide uppercase">ดูรายวิชา</span>
-              <ChevronDown className="w-5 h-5" />
-            </button>
+            <div className="absolute bottom-10 left-0 right-0 flex justify-center z-10">
+              <button
+                onClick={() => document.getElementById('courses')?.scrollIntoView({ behavior: 'smooth' })}
+                className="flex flex-col items-center gap-1.5 text-white/60 hover:text-white transition-colors animate-bounce cursor-pointer"
+                aria-label="เลื่อนไปดูรายวิชา"
+              >
+                <span className="text-xs font-medium tracking-wide uppercase">ดูรายวิชา</span>
+                <ChevronDown className="w-5 h-5" />
+              </button>
+            </div>
           </motion.section>
         )}
       </AnimatePresence>
@@ -394,15 +451,15 @@ export function MainPage({ initialCourses, initialStats }: MainPageProps) {
           credits={credits} setCredits={setCredits}
           sort={sort} setSort={setSort}
           faculties={faculties} creditOptions={creditOptions}
-          count={filtered.length}
+          count={totalCount}
         />
 
         {/* Grid */}
         <div className="max-w-7xl mx-auto px-5 md:px-8 py-8">
 
-          {/* Empty state — own AnimatePresence so it fades in/out independently */}
+          {/* Empty state */}
           <AnimatePresence>
-            {filtered.length === 0 && (
+            {courses.length === 0 && !loading && (
               <motion.div
                 key="empty"
                 initial={{ opacity: 0, y: 8 }}
@@ -418,43 +475,75 @@ export function MainPage({ initialCourses, initialStats }: MainPageProps) {
             )}
           </AnimatePresence>
 
-          {/* Card grid — plain div so layout prop works correctly inside CSS Grid */}
-          {filtered.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-              <AnimatePresence mode="popLayout">
-                {filtered.map((c, i) => (
-                  <motion.div
-                    key={c.id}
-                    layout
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.15 } }}
-                    transition={{
-                      duration: 0.28,
-                      delay: Math.min(i * 0.03, 0.3),
-                      ease: [0.25, 0.46, 0.45, 0.94],
-                    }}
-                  >
-                    <CourseCard
-                      course={c}
-                      reviewCount={reviewStats[c.id]?.count || 0}
-                      avgGrade={reviewStats[c.id]?.avg}
-                      onClick={() => setSelected(c)}
-                    />
-                  </motion.div>
-                ))}
-              </AnimatePresence>
+          {/* Card grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            <AnimatePresence mode="popLayout">
+              {courses.map((c, i) => (
+                <motion.div
+                  key={`${c.id}-${i}`}
+                  layout
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.15 } }}
+                  transition={{
+                    duration: 0.28,
+                    delay: Math.min(i % 24 * 0.03, 0.3),
+                    ease: [0.25, 0.46, 0.45, 0.94],
+                  }}
+                >
+                  <CourseCard
+                    course={c}
+                    reviewCount={reviewStats[c.id]?.count || 0}
+                    avgGrade={reviewStats[c.id]?.avg}
+                    onClick={() => setSelected(c)}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+
+          {/* Load More */}
+          {hasMore && (
+            <div className="mt-12 flex justify-center pb-12">
+              <button
+                onClick={handleLoadMore}
+                disabled={loading}
+                className="w-full flex items-center justify-center gap-2 py-3 bg-transparent border-2 border-[#9E76B4] text-[#9E76B4] hover:bg-purple-50 rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-[#9E76B4]/30 border-t-[#9E76B4] rounded-full animate-spin" />
+                    กำลังโหลด...
+                  </>
+                ) : (
+                  'โหลดเพิ่ม'
+                )}
+              </button>
             </div>
           )}
         </div>
       </section>
 
-      <footer className="border-t border-neutral-200 bg-[#FAF9F5] py-6 text-center text-sm text-neutral-500">
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <GraduationCap className="w-4 h-4 text-neutral-400" />
-          <span className="font-semibold text-neutral-700">รีวิวรายวิชา มช.</span>
+      <footer className="border-t border-neutral-200 bg-[#FAF9F5] py-8 text-sm text-neutral-500">
+        <div className="max-w-7xl mx-auto px-5 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="order-2 md:order-1 flex flex-col items-center md:items-start">
+            <div className="flex items-center gap-2 mb-2">
+              <GraduationCap className="w-4 h-4 text-neutral-400" />
+              <span className="font-semibold text-neutral-700">รีวิวตัวฟรีมช.</span>
+            </div>
+            <p>สำหรับนักศึกษามหาวิทยาลัยเชียงใหม่</p>
+          </div>
+
+          <div className="order-1 md:order-2">
+            <button
+              onClick={() => setIsSupportOpen(true)}
+              className="p-3 border border-neutral-300 rounded-full text-neutral-400 hover:bg-white hover:text-[#9E76B4] hover:border-[#9E76B4] transition-all shadow-sm active:scale-95 flex items-center justify-center"
+              title="สนับสนุนค่าข้าวเที่ยงผู้พัฒนา"
+            >
+              <Coffee className="w-5 h-5" />
+            </button>
+          </div>
         </div>
-        สำหรับนักศึกษามหาวิทยาลัยเชียงใหม่
       </footer>
 
       <AnimatePresence>
@@ -462,8 +551,53 @@ export function MainPage({ initialCourses, initialStats }: MainPageProps) {
           <CourseModal
             course={selected}
             onClose={() => setSelected(null)}
-            onReviewAdded={loadAll}
           />
+        )}
+      </AnimatePresence>
+
+      {/* Support Modal */}
+      <AnimatePresence>
+        {isSupportOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsSupportOpen(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-xs bg-white rounded-3xl shadow-2xl overflow-hidden p-6 text-center"
+            >
+              <button
+                onClick={() => setIsSupportOpen(false)}
+                className="absolute top-4 right-4 p-2 text-neutral-400 hover:text-neutral-600 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="mt-8 mb-6">
+                <p className="text-sm text-neutral-600 leading-relaxed">
+                  หากเว็บนี้มีประโยชน์และอยากเป็นกำลังใจให้ผู้พัฒนาเล็กๆน้อยๆ สามารถสนับสนุนค่าข้าวเที่ยงได้ครับ ขอบคุณมากครับ
+                </p>
+              </div>
+
+              <div className="relative rounded-2xl overflow-hidden bg-neutral-100 border border-neutral-200">
+                <img
+                  src="/IMG_7535.JPG"
+                  alt="Support Developer QR Code"
+                  className="w-full h-auto"
+                />
+              </div>
+
+              <p className="mt-5 text-[11px] text-neutral-500 leading-relaxed">
+                หมายเหตุ: เว็บไซต์นี้อาจจะไม่ได้เปิดให้ดูตลอด หากใครอยากนำไปทำต่อสามารถทักมาได้เลยนะครับ
+              </p>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </main>

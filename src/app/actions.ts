@@ -1,9 +1,10 @@
 'use server';
 
 import { db } from '@/db';
-import { reviews as reviewsTable } from '@/db/schema';
-import { eq, and, desc, sql } from 'drizzle-orm';
+import { reviews as reviewsTable, rate_limit_logs, review_likes } from '@/db/schema';
+import { eq, and, desc, sql, gte } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
+import { headers } from 'next/headers';
 
 export async function fetchCourseReviews(courseId: string) {
   try {
@@ -50,7 +51,32 @@ export async function submitReview(payload: {
     return { success: false, error: 'ไม่พบรหัสวิชา' };
   }
 
-  // Rate limiting: Check if this fingerprint has submitted a review recently (last 60s)
+  // Server-side IP Rate Limiting: Max 3 reviews per hour
+  const headerList = await headers();
+  const forwarded = headerList.get('x-forwarded-for');
+  const ip = forwarded ? forwarded.split(',')[0] : '127.0.0.1';
+
+  try {
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    const recentLogs = await db.select({ id: rate_limit_logs.id })
+      .from(rate_limit_logs)
+      .where(and(
+        eq(rate_limit_logs.ip, ip),
+        eq(rate_limit_logs.action, 'review'),
+        gte(rate_limit_logs.created_at, oneHourAgo)
+      ));
+
+    if (recentLogs.length >= 3) {
+      return { 
+        success: false, 
+        error: 'คุณส่งรีวิวเกินกำหนด (สูงสุด 3 ครั้งต่อชั่วโมง) กรุณาลองใหม่ภายหลัง' 
+      };
+    }
+  } catch (e) {
+    console.error('IP Rate limit check failed:', e);
+  }
+
+  // Fingerprint Rate limiting (already exists, keeping it as an extra layer)
   if (payload.fingerprint_id) {
     try {
       const lastReview = await db.select({ created_at: reviewsTable.created_at })
@@ -67,44 +93,89 @@ export async function submitReview(payload: {
         if (diffSeconds < 60) {
           return { 
             success: false, 
-            error: `กรุณารออีก ${Math.ceil(60 - diffSeconds)} วินาทีก่อนส่งรีวิวใหม่ (Rate Limit)` 
+            error: `กรุณารออีก ${Math.ceil(60 - diffSeconds)} วินาทีก่อนส่งรีวิวใหม่` 
           };
         }
       }
     } catch (e) {
-      console.error('Rate limit check failed:', e);
+      console.error('Fingerprint rate limit check failed:', e);
     }
   }
 
   try {
-    await db.insert(reviewsTable).values(payload);
+    await db.transaction(async (tx) => {
+      await tx.insert(reviewsTable).values(payload);
+      await tx.insert(rate_limit_logs).values({
+        ip,
+        action: 'review'
+      });
+    });
     revalidatePath('/');
     return { success: true };
   } catch (error) {
     console.error('Failed to submit review:', error);
-    return { success: false, error: 'Database error' };
+    return { success: false, error: 'เกิดข้อผิดพลาดในการบันทึกข้อมูล' };
   }
 }
 
 export async function likeReview(reviewId: string) {
   if (!reviewId) return { success: false };
+  
+  const headerList = await headers();
+  const forwarded = headerList.get('x-forwarded-for');
+  const ip = forwarded ? forwarded.split(',')[0] : '127.0.0.1';
+
   try {
-    await db.update(reviewsTable)
-      .set({ like_count: sql`${reviewsTable.like_count} + 1` })
-      .where(eq(reviewsTable.id, reviewId));
+    // Check if already liked
+    const existingLike = await db.select()
+      .from(review_likes)
+      .where(and(eq(review_likes.review_id, reviewId), eq(review_likes.ip, ip)))
+      .limit(1);
+
+    if (existingLike.length > 0) {
+      return { success: false, error: 'คุณไลก์รีวิวนี้ไปแล้ว' };
+    }
+
+    await db.transaction(async (tx) => {
+      await tx.insert(review_likes).values({ review_id: reviewId, ip });
+      await tx.update(reviewsTable)
+        .set({ like_count: sql`${reviewsTable.like_count} + 1` })
+        .where(eq(reviewsTable.id, reviewId));
+    });
+
     return { success: true };
   } catch (error) {
     console.error('Failed to like review:', error);
-    return { success: false };
+    return { success: false, error: 'เกิดข้อผิดพลาดในการกดไลก์' };
   }
 }
 
 export async function unlikeReview(reviewId: string) {
   if (!reviewId) return { success: false };
+
+  const headerList = await headers();
+  const forwarded = headerList.get('x-forwarded-for');
+  const ip = forwarded ? forwarded.split(',')[0] : '127.0.0.1';
+
   try {
-    await db.update(reviewsTable)
-      .set({ like_count: sql`GREATEST(${reviewsTable.like_count} - 1, 0)` })
-      .where(eq(reviewsTable.id, reviewId));
+    // Check if liked before
+    const existingLike = await db.select()
+      .from(review_likes)
+      .where(and(eq(review_likes.review_id, reviewId), eq(review_likes.ip, ip)))
+      .limit(1);
+
+    if (existingLike.length === 0) {
+      return { success: false };
+    }
+
+    await db.transaction(async (tx) => {
+      await tx.delete(review_likes)
+        .where(and(eq(review_likes.review_id, reviewId), eq(review_likes.ip, ip)));
+      await tx.update(reviewsTable)
+        .set({ like_count: sql`GREATEST(${reviewsTable.like_count} - 1, 0)` })
+        .where(eq(reviewsTable.id, reviewId));
+    });
+
     return { success: true };
   } catch (error) {
     console.error('Failed to unlike review:', error);

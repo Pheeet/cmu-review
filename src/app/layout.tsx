@@ -9,8 +9,8 @@ const sarabun = Sarabun({
 })
 
 export const metadata: Metadata = {
-  title: 'รีวิวรายวิชา มช.',
-  description: 'รีวิวรายวิชามหาวิทยาลัยเชียงใหม่',
+  title: 'รีวิวตัวฟรีมช.',
+  description: 'รีวิวตัวฟรีของมหาวิทยาลัยเชียงใหม่',
 }
 
 export default function RootLayout({
