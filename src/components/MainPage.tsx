@@ -408,7 +408,7 @@ export function MainPage({
                   transition={{ delay: 0.6 }}
                   className="mt-4 text-xs text-white/50"
                 >
-                  ข้อมูลรายวิชาอ้างอิงจาก ทีมมช by AutoBot
+                  ข้อมูลรายวิชาและรีวิวเก่าๆอ้างอิงจาก ทีมมช by AutoBot
                 </motion.p>
               </div>
             </div>
