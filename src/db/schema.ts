@@ -35,14 +35,14 @@ export const rate_limit_logs = pgTable('rate_limit_logs', {
 });
 
 export const review_likes = pgTable('review_likes', {
-  review_id: uuid('review_id').notNull().references(() => reviewsTable.id, { onDelete: 'cascade' }),
+  review_id: uuid('review_id').notNull().references(() => reviews.id, { onDelete: 'cascade' }),
   ip: text('ip').notNull(),
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });
 
 export const review_reports = pgTable('review_reports', {
   id: uuid('id').defaultRandom().primaryKey(),
-  review_id: uuid('review_id').notNull().references(() => reviewsTable.id, { onDelete: 'cascade' }),
+  review_id: uuid('review_id').notNull().references(() => reviews.id, { onDelete: 'cascade' }),
   ip: text('ip').notNull(),
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });

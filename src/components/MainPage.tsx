@@ -295,42 +295,8 @@ export function MainPage({
     }
   };
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    let list = courses
-      .filter(c => faculty === 'all' || c.faculty === faculty)
-      .filter(c => credits === 'all' || String(c.credits) === credits)
-      .filter(c =>
-        !q ||
-        c.code.toLowerCase().includes(q) ||
-        (c.name_en && c.name_en.toLowerCase().includes(q)) ||
-        (c.name_th && c.name_th.toLowerCase().includes(q))
-      );
-
-    if (sort === 'reviews') {
-      list = [...list].sort((a, b) => (reviewStats[b.id]?.count || 0) - (reviewStats[a.id]?.count || 0));
-    } else if (sort === 'name') {
-      list = [...list].sort((a, b) => (a.name_en || '').localeCompare(b.name_en || ''));
-    } else if (sort === 'grade') {
-      list = [...list].sort((a, b) => {
-        const ga = parseFloat(reviewStats[a.id]?.avg ?? '');
-        const gb = parseFloat(reviewStats[b.id]?.avg ?? '');
-        const hasA = !isNaN(ga);
-        const hasB = !isNaN(gb);
-        if (!hasA && !hasB) return 0;
-        if (!hasA) return 1;  // no grade → go last
-        if (!hasB) return -1;
-        return gb - ga; // descending: A (4.0) first
-      });
-    } else {
-      list = [...list].sort((a, b) => a.code.localeCompare(b.code));
-    }
-
-    return list;
-  }, [courses, query, faculty, credits, sort, reviewStats]);
-
   // True when user has any active filter/search
-  const isFiltering = query.trim().length > 0 || faculty !== 'all' || credits !== 'all';
+  const isFiltering = debouncedQuery.trim().length > 0 || faculty !== 'all' || credits !== 'all';
 
   // Latch: once user interacts with filter, hero stays hidden for the session
   const [hasFiltered, setHasFiltered] = useState(false);
@@ -524,25 +490,23 @@ export function MainPage({
         </div>
       </section>
 
-      <footer className="border-t border-neutral-200 bg-[#FAF9F5] py-8 text-sm text-neutral-500">
-        <div className="max-w-7xl mx-auto px-5 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="order-2 md:order-1 flex flex-col items-center md:items-start">
-            <div className="flex items-center gap-2 mb-2">
+      <footer className="border-t border-neutral-200 bg-[#FAF9F5] py-6 text-sm text-neutral-500">
+        <div className="max-w-7xl mx-auto px-5 flex flex-row items-center justify-between gap-4">
+          <div className="flex flex-col items-start gap-1">
+            <div className="flex items-center gap-2">
               <GraduationCap className="w-4 h-4 text-neutral-400" />
               <span className="font-semibold text-neutral-700">รีวิวตัวฟรีมช.</span>
             </div>
-            <p>สำหรับนักศึกษามหาวิทยาลัยเชียงใหม่</p>
+            <p className="text-xs text-neutral-400">สำหรับนักศึกษามหาวิทยาลัยเชียงใหม่</p>
           </div>
 
-          <div className="order-1 md:order-2">
-            <button
-              onClick={() => setIsSupportOpen(true)}
-              className="p-3 border border-neutral-300 rounded-full text-neutral-400 hover:bg-white hover:text-[#9E76B4] hover:border-[#9E76B4] transition-all shadow-sm active:scale-95 flex items-center justify-center"
-              title="สนับสนุนค่าข้าวเที่ยงผู้พัฒนา"
-            >
-              <Coffee className="w-5 h-5" />
-            </button>
-          </div>
+          <button
+            onClick={() => setIsSupportOpen(true)}
+            className="p-2.5 border border-neutral-300 rounded-full text-neutral-400 hover:bg-white hover:text-[#9E76B4] hover:border-[#9E76B4] transition-all shadow-sm active:scale-95 flex items-center justify-center"
+            title="สนับสนุนค่าข้าวเที่ยงผู้พัฒนา"
+          >
+            <Coffee className="w-5 h-5" />
+          </button>
         </div>
       </footer>
 
