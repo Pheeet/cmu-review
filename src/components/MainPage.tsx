@@ -206,6 +206,27 @@ function FilterBar({
   );
 }
 
+// ─── Skeleton Loading Card ────────────────────────────────────────
+function SkeletonCard() {
+  return (
+    <div className="bg-white rounded-2xl border border-neutral-100 p-5 animate-pulse shadow-sm h-full flex flex-col">
+      <div className="flex justify-between items-start mb-4">
+        <div className="h-7 w-20 bg-neutral-100 rounded-lg" />
+        <div className="h-6 w-24 bg-neutral-50 border border-neutral-100 rounded-full" />
+      </div>
+      <div className="flex-1 space-y-2 mb-6">
+        <div className="h-5 w-5/6 bg-neutral-100 rounded-md" />
+        <div className="h-4 w-2/3 bg-neutral-100 rounded-md" />
+        <div className="h-4 w-1/4 bg-purple-50 rounded-full mt-2" />
+      </div>
+      <div className="mt-auto pt-3 border-t border-neutral-50 flex justify-between items-center h-6">
+        <div className="h-4 w-12 bg-neutral-100 rounded-full" />
+        <div className="h-4 w-10 bg-neutral-100 rounded-md" />
+      </div>
+    </div>
+  );
+}
+
 // ─── Main component ────────────────────────────────────────────────
 export function MainPage({
   initialCourses,
@@ -244,6 +265,10 @@ export function MainPage({
   }, [debouncedQuery, faculty, credits, sort]);
 
   async function fetchData(pageNum: number, isNewSearch: boolean) {
+    if (isNewSearch) {
+      setCourses([]);
+      setPage(1);
+    }
     setLoading(true);
     try {
       const params = new URLSearchParams({
@@ -438,27 +463,40 @@ export function MainPage({
           {/* Card grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             <AnimatePresence mode="popLayout">
-              {courses.map((c, i) => (
-                <motion.div
-                  key={`${c.id}-${i}`}
-                  layout
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.15 } }}
-                  transition={{
-                    duration: 0.28,
-                    delay: Math.min(i % 24 * 0.03, 0.3),
-                    ease: [0.25, 0.46, 0.45, 0.94],
-                  }}
-                >
-                  <CourseCard
-                    course={c}
-                    reviewCount={reviewStats[c.id]?.count || 0}
-                    avgGrade={reviewStats[c.id]?.avg}
-                    onClick={() => setSelected(c)}
-                  />
-                </motion.div>
-              ))}
+              {loading && courses.length === 0 ? (
+                Array.from({ length: 24 }).map((_, i) => (
+                  <motion.div
+                    key={`skeleton-${i}`}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    <SkeletonCard />
+                  </motion.div>
+                ))
+              ) : (
+                courses.map((c, i) => (
+                  <motion.div
+                    key={`${c.id}-${i}`}
+                    layout
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.15 } }}
+                    transition={{
+                      duration: 0.28,
+                      delay: Math.min(i % 24 * 0.03, 0.3),
+                      ease: [0.25, 0.46, 0.45, 0.94],
+                    }}
+                  >
+                    <CourseCard
+                      course={c}
+                      reviewCount={reviewStats[c.id]?.count || 0}
+                      avgGrade={reviewStats[c.id]?.avg}
+                      onClick={() => setSelected(c)}
+                    />
+                  </motion.div>
+                ))
+              )}
             </AnimatePresence>
           </div>
 
