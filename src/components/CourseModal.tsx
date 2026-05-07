@@ -313,7 +313,7 @@ export function CourseModal({ course, onClose }: { course: Course; onClose: () =
                       </div>
                     </div>
 
-                    <p className="text-neutral-700 text-sm leading-relaxed whitespace-pre-wrap pl-0 sm:pl-11">
+                    <p className="text-neutral-700 text-sm leading-relaxed whitespace-pre-wrap break-words pl-0 sm:pl-11">
                       {review.comment}
                     </p>
 
