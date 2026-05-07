@@ -7,17 +7,17 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
-    const { reviewId } = await request.json();
+    const { reviewId, fingerprintId } = await request.json();
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0] ?? 'unknown';
 
-    if (!reviewId) {
-      return NextResponse.json({ error: 'Missing reviewId' }, { status: 400 });
+    if (!reviewId || !fingerprintId) {
+      return NextResponse.json({ error: 'Missing reviewId or fingerprintId' }, { status: 400 });
     }
 
-    // Check for duplicate report from this IP
+    // Check for duplicate report from this Fingerprint
     const existingReport = await db.select()
       .from(review_reports)
-      .where(and(eq(review_reports.review_id, reviewId), eq(review_reports.ip, ip)))
+      .where(and(eq(review_reports.review_id, reviewId), eq(review_reports.fingerprint_id, fingerprintId)))
       .limit(1);
 
     if (existingReport.length > 0) {
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
     const newCount = (review.report_count || 0) + 1;
 
     // 1. Log the report
-    await db.insert(review_reports).values({ review_id: reviewId, ip });
+    await db.insert(review_reports).values({ review_id: reviewId, ip, fingerprint_id: fingerprintId });
 
     // 2. Update or Delete the review
     if (newCount >= 15) {

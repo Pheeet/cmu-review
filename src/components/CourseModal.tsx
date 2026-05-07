@@ -23,6 +23,7 @@ export function CourseModal({ course, onClose }: { course: Course; onClose: () =
   
   const [hasReviewed, setHasReviewed] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [visitorId, setVisitorId] = useState<string | null>(null);
   
   const [likedReviews, setLikedReviews] = useState<Record<string, boolean>>({});
   const [reportingId, setReportingId] = useState<string | null>(null);
@@ -100,6 +101,7 @@ export function CourseModal({ course, onClose }: { course: Course; onClose: () =
 
       const result = await fpPromiseWithTimeout;
       const currentVisitorId = result.visitorId;
+      setVisitorId(currentVisitorId);
       localStorage.setItem('cmureview_fp', currentVisitorId);
 
       // 3. Check DB
@@ -137,7 +139,7 @@ export function CourseModal({ course, onClose }: { course: Course; onClose: () =
       const res = await fetch('/api/report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reviewId })
+        body: JSON.stringify({ reviewId, fingerprintId: visitorId || localStorage.getItem('cmureview_fp') })
       });
       
       if (res.ok) {
@@ -175,7 +177,13 @@ export function CourseModal({ course, onClose }: { course: Course; onClose: () =
     setLikedReviews(newLiked);
     localStorage.setItem('cmureview_liked', JSON.stringify(newLiked));
 
-    const result = isLiked ? await unlikeReview(reviewId) : await likeReview(reviewId);
+    const currentFp = visitorId || localStorage.getItem('cmureview_fp');
+    if (!currentFp) {
+      toast.error('กำลังตรวจสอบสิทธิ์ กรุณารอสักครู่...');
+      return;
+    }
+
+    const result = isLiked ? await unlikeReview(reviewId, currentFp) : await likeReview(reviewId, currentFp);
     if (!result.success) {
       setReviews(prev => prev.map(r => 
         r.id === reviewId 

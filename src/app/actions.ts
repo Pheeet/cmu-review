@@ -118,18 +118,18 @@ export async function submitReview(payload: {
   }
 }
 
-export async function likeReview(reviewId: string) {
-  if (!reviewId) return { success: false };
+export async function likeReview(reviewId: string, fingerprintId: string) {
+  if (!reviewId || !fingerprintId) return { success: false, error: 'ข้อมูลไม่ครบถ้วน' };
   
   const headerList = await headers();
   const forwarded = headerList.get('x-forwarded-for');
   const ip = forwarded ? forwarded.split(',')[0] : '127.0.0.1';
 
   try {
-    // Check if already liked
+    // Check if already liked using Fingerprint
     const existingLike = await db.select()
       .from(review_likes)
-      .where(and(eq(review_likes.review_id, reviewId), eq(review_likes.ip, ip)))
+      .where(and(eq(review_likes.review_id, reviewId), eq(review_likes.fingerprint_id, fingerprintId)))
       .limit(1);
 
     if (existingLike.length > 0) {
@@ -137,7 +137,7 @@ export async function likeReview(reviewId: string) {
     }
 
     await Promise.all([
-      db.insert(review_likes).values({ review_id: reviewId, ip }),
+      db.insert(review_likes).values({ review_id: reviewId, ip, fingerprint_id: fingerprintId }),
       db.update(reviewsTable)
         .set({ like_count: sql`${reviewsTable.like_count} + 1` })
         .where(eq(reviewsTable.id, reviewId))
@@ -150,27 +150,27 @@ export async function likeReview(reviewId: string) {
   }
 }
 
-export async function unlikeReview(reviewId: string) {
-  if (!reviewId) return { success: false };
+export async function unlikeReview(reviewId: string, fingerprintId: string) {
+  if (!reviewId || !fingerprintId) return { success: false, error: 'ข้อมูลไม่ครบถ้วน' };
 
   const headerList = await headers();
   const forwarded = headerList.get('x-forwarded-for');
   const ip = forwarded ? forwarded.split(',')[0] : '127.0.0.1';
 
   try {
-    // Check if liked before
+    // Check if liked before using Fingerprint
     const existingLike = await db.select()
       .from(review_likes)
-      .where(and(eq(review_likes.review_id, reviewId), eq(review_likes.ip, ip)))
+      .where(and(eq(review_likes.review_id, reviewId), eq(review_likes.fingerprint_id, fingerprintId)))
       .limit(1);
 
     if (existingLike.length === 0) {
-      return { success: false };
+      return { success: false, error: 'คุณยังไม่ได้ไลก์รีวิวนี้' };
     }
 
     await Promise.all([
       db.delete(review_likes)
-        .where(and(eq(review_likes.review_id, reviewId), eq(review_likes.ip, ip))),
+        .where(and(eq(review_likes.review_id, reviewId), eq(review_likes.fingerprint_id, fingerprintId))),
       db.update(reviewsTable)
         .set({ like_count: sql`GREATEST(${reviewsTable.like_count} - 1, 0)` })
         .where(eq(reviewsTable.id, reviewId))
