@@ -103,13 +103,13 @@ export async function submitReview(payload: {
   }
 
   try {
-    await db.transaction(async (tx) => {
-      await tx.insert(reviewsTable).values(payload);
-      await tx.insert(rate_limit_logs).values({
+    await Promise.all([
+      db.insert(reviewsTable).values(payload),
+      db.insert(rate_limit_logs).values({
         ip,
         action: 'review'
-      });
-    });
+      })
+    ]);
     revalidatePath('/');
     return { success: true };
   } catch (error) {
