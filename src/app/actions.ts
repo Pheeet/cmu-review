@@ -179,6 +179,6 @@ export async function unlikeReview(reviewId: string) {
     return { success: true };
   } catch (error) {
     console.error('Failed to unlike review:', error);
-    return { success: false };
+    return { success: false, error: 'เกิดข้อผิดพลาดในการยกเลิกไลก์' };
   }
 }

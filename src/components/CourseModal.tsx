@@ -187,7 +187,7 @@ export function CourseModal({ course, onClose }: { course: Course; onClose: () =
       else { delete rolledBackLiked[reviewId]; }
       setLikedReviews(rolledBackLiked);
       localStorage.setItem('cmureview_liked', JSON.stringify(rolledBackLiked));
-      toast.error(result.error || 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
+      toast.error((result as any).error || 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
     }
   };
 
