@@ -262,16 +262,16 @@ export function MainPage({
       isFirstRender.current = false;
       return;
     }
-    fetchData(1, true, { 
-      search: debouncedQuery, 
-      faculty, 
-      credits, 
-      sort 
+    fetchData(1, true, {
+      search: debouncedQuery,
+      faculty,
+      credits,
+      sort
     });
   }, [debouncedQuery, faculty, credits, sort]);
 
   async function fetchData(
-    pageNum: number, 
+    pageNum: number,
     isNewSearch: boolean,
     params?: { search?: string; faculty?: string; credits?: string; sort?: string }
   ) {
@@ -541,9 +541,6 @@ export function MainPage({
             </div>
             <p className="text-xs text-neutral-400 font-medium">สำหรับนักศึกษามหาวิทยาลัยเชียงใหม่</p>
           </div>
-          <p className="text-[10px] text-neutral-300 uppercase tracking-widest font-bold mt-2">
-            MADE WITH HEART FOR CMU STUDENTS
-          </p>
         </div>
       </footer>
 
