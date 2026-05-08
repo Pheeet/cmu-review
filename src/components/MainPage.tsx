@@ -532,15 +532,18 @@ export function MainPage({
         </div>
       </section>
 
-      <footer className="border-t border-neutral-200 bg-[#FAF9F5] py-6 text-sm text-neutral-500">
-        <div className="max-w-7xl mx-auto px-5 flex flex-row items-center justify-between gap-4">
-          <div className="flex flex-col items-start gap-1">
+      <footer className="border-t border-neutral-200 bg-[#FAF9F5] py-10 text-sm text-neutral-500">
+        <div className="max-w-7xl mx-auto px-5 flex flex-col items-center text-center gap-3">
+          <div className="flex flex-col items-center gap-1.5">
             <div className="flex items-center gap-2">
-              <GraduationCap className="w-4 h-4 text-neutral-400" />
-              <span className="font-semibold text-neutral-700">รีวิวตัวฟรีมช.</span>
+              <GraduationCap className="w-5 h-5 text-neutral-400" />
+              <span className="font-bold text-neutral-800 text-base">รีวิวตัวฟรีมช.</span>
             </div>
-            <p className="text-xs text-neutral-400">สำหรับนักศึกษามหาวิทยาลัยเชียงใหม่</p>
+            <p className="text-xs text-neutral-400 font-medium">สำหรับนักศึกษามหาวิทยาลัยเชียงใหม่</p>
           </div>
+          <p className="text-[10px] text-neutral-300 uppercase tracking-widest font-bold mt-2">
+            MADE WITH HEART FOR CMU STUDENTS
+          </p>
         </div>
       </footer>
 
