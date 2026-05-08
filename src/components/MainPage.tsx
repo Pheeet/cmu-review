@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, GraduationCap, ChevronDown, SlidersHorizontal, X, Coffee } from 'lucide-react';
+import { Search, GraduationCap, ChevronDown, SlidersHorizontal, X } from 'lucide-react';
 import { CourseCard } from '@/components/CourseCard';
 import { CourseModal } from '@/components/CourseModal';
 import { Course } from '@/types';
@@ -241,7 +241,6 @@ export function MainPage({
   const [reviewStats, setReviewStats] = useState(initialStats);
   const [totalCount, setTotalCount] = useState(initialTotalCount);
   const [selected, setSelected] = useState<Course | null>(null);
-  const [isSupportOpen, setIsSupportOpen] = useState(false);
   const [localQuery, setLocalQuery] = useState('');
 
   // Filter/sort state
@@ -542,14 +541,6 @@ export function MainPage({
             </div>
             <p className="text-xs text-neutral-400">สำหรับนักศึกษามหาวิทยาลัยเชียงใหม่</p>
           </div>
-
-          <button
-            onClick={() => setIsSupportOpen(true)}
-            className="p-2.5 border border-neutral-300 rounded-xl text-neutral-400 hover:bg-white hover:text-[#9E76B4] hover:border-[#9E76B4] transition-all shadow-sm active:scale-95 flex items-center justify-center"
-            title="สนับสนุนค่าข้าวเที่ยงผู้พัฒนา"
-          >
-            <Coffee className="w-5 h-5" />
-          </button>
         </div>
       </footer>
 
@@ -559,52 +550,6 @@ export function MainPage({
             course={selected}
             onClose={() => setSelected(null)}
           />
-        )}
-      </AnimatePresence>
-
-      {/* Support Modal */}
-      <AnimatePresence>
-        {isSupportOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsSupportOpen(false)}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative w-full max-w-xs bg-white rounded-3xl shadow-2xl overflow-hidden p-6 text-center"
-            >
-              <button
-                onClick={() => setIsSupportOpen(false)}
-                className="absolute top-4 right-4 p-2 text-neutral-400 hover:text-neutral-600 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-
-              <div className="mt-8 mb-6">
-                <p className="text-sm text-neutral-600 leading-relaxed">
-                  หากเว็บนี้มีประโยชน์และอยากเป็นกำลังใจให้ผู้พัฒนาเล็กๆน้อยๆ สามารถสนับสนุนค่าข้าวเที่ยงได้ครับ ขอบคุณมากครับ
-                </p>
-              </div>
-
-              <div className="relative rounded-2xl overflow-hidden bg-neutral-100 border border-neutral-200">
-                <img
-                  src="/IMG_7535.JPG"
-                  alt="Support Developer QR Code"
-                  className="w-full h-auto"
-                />
-              </div>
-
-              <p className="mt-5 text-[11px] text-neutral-500 leading-relaxed">
-                หมายเหตุ: เว็บไซต์นี้อาจจะไม่ได้เปิดให้ดูตลอด หากใครอยากนำไปทำต่อสามารถทักมาได้เลยนะครับ
-              </p>
-            </motion.div>
-          </div>
         )}
       </AnimatePresence>
     </main>
