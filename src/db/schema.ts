@@ -1,4 +1,4 @@
-import { pgTable, text, integer, boolean, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { pgTable, text, integer, timestamp, uuid } from 'drizzle-orm/pg-core';
 
 export const courses = pgTable('courses', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -23,7 +23,6 @@ export const reviews = pgTable('reviews', {
   fingerprint_id: text('fingerprint_id'),
   report_count: integer('report_count').default(0),
   like_count: integer('like_count').default(0),
-  hidden: boolean('hidden').default(false),
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });
 

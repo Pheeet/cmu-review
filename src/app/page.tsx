@@ -27,7 +27,6 @@ export default async function Home() {
     )::numeric, 2)::text`.as('avg_grade')
   })
   .from(reviewsTable)
-  .where(eq(reviewsTable.hidden, false))
   .groupBy(reviewsTable.course_id)
   .as('stats');
 

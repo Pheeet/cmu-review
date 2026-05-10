@@ -53,7 +53,6 @@ export async function GET(request: Request) {
       )::numeric`.as('avg_grade_num')
     })
       .from(reviewsTable)
-      .where(eq(reviewsTable.hidden, false))
       .groupBy(reviewsTable.course_id)
       .as('stats');
 
