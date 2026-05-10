@@ -9,7 +9,7 @@ import { headers } from 'next/headers';
 export async function fetchCourseReviews(courseId: string) {
   try {
     const data = await db.select().from(reviewsTable)
-      .where(and(eq(reviewsTable.course_id, courseId), eq(reviewsTable.hidden, false)))
+      .where(eq(reviewsTable.course_id, courseId))
       .orderBy(desc(reviewsTable.like_count), desc(reviewsTable.created_at));
     return data;
   } catch (error) {

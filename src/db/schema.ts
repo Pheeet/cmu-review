@@ -1,4 +1,4 @@
-import { pgTable, text, integer, boolean, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { pgTable, text, integer, timestamp, uuid } from 'drizzle-orm/pg-core';
 
 export const courses = pgTable('courses', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -23,7 +23,6 @@ export const reviews = pgTable('reviews', {
   fingerprint_id: text('fingerprint_id'),
   report_count: integer('report_count').default(0),
   like_count: integer('like_count').default(0),
-  hidden: boolean('hidden').default(false),
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });
 
@@ -49,8 +48,17 @@ export const review_reports = pgTable('review_reports', {
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });
 
+export const admins = pgTable('admins', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  username: text('username').notNull().unique(),
+  password_hash: text('password_hash').notNull(),
+  created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  last_login: timestamp('last_login', { withTimezone: true }),
+});
+
 export type Course = typeof courses.$inferSelect;
 export type Review = typeof reviews.$inferSelect;
 export type RateLimitLog = typeof rate_limit_logs.$inferSelect;
 export type ReviewLike = typeof review_likes.$inferSelect;
 export type ReviewReport = typeof review_reports.$inferSelect;
+export type Admin = typeof admins.$inferSelect;

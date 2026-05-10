@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
 import { reviews as reviewsTable } from '@/db/schema';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -14,7 +14,7 @@ export async function GET(request: Request) {
   try {
     const data = await db.select()
       .from(reviewsTable)
-      .where(and(eq(reviewsTable.course_id, courseId), eq(reviewsTable.hidden, false)))
+      .where(eq(reviewsTable.course_id, courseId))
       .orderBy(desc(reviewsTable.like_count), desc(reviewsTable.created_at));
     
     return NextResponse.json(data);
