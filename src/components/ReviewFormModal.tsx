@@ -22,7 +22,7 @@ export function ReviewFormModal({
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6">
-          {/* Backdrop — subtle darkening layer on top of CourseModal's backdrop */}
+          {/* Backdrop — click to close */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

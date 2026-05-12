@@ -6,7 +6,7 @@ import { ReportsClient } from './client';
 export const dynamic = 'force-dynamic';
 
 export default async function AdminReportsPage() {
-  const allReported = await db
+  const reported = await db
     .select({
       id: reviews.id,
       course_code: courses.code,
@@ -25,12 +25,9 @@ export default async function AdminReportsPage() {
     .where(gt(reviews.report_count, 0))
     .orderBy(desc(reviews.report_count), desc(reviews.created_at));
 
-  const pending = allReported.filter((r) => (r.report_count ?? 0) > 0);
-
   return (
     <ReportsClient
-      pending={pending.map((r) => ({ ...r, created_at: r.created_at?.toISOString() ?? null }))}
-      all={allReported.map((r) => ({ ...r, created_at: r.created_at?.toISOString() ?? null }))}
+      reviews={reported.map((r) => ({ ...r, created_at: r.created_at?.toISOString() ?? null }))}
     />
   );
 }

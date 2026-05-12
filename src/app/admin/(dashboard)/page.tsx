@@ -24,6 +24,7 @@ async function getRecentReviews() {
       course_name: sql<string>`COALESCE(${courses.name_en}, ${courses.name_th})`,
       reviewer_name: reviews.reviewer_name,
       grade: reviews.grade,
+      comment: reviews.comment,
       created_at: reviews.created_at,
     })
     .from(reviews)
@@ -41,6 +42,8 @@ async function getTopReported() {
       reviewer_name: reviews.reviewer_name,
       comment: reviews.comment,
       report_count: reviews.report_count,
+      grade: reviews.grade,
+      created_at: reviews.created_at,
     })
     .from(reviews)
     .leftJoin(courses, eq(reviews.course_id, courses.id))
@@ -63,7 +66,10 @@ export default async function AdminDashboard() {
         ...r,
         created_at: r.created_at?.toISOString() ?? null,
       }))}
-      topReported={topReported}
+      topReported={topReported.map((r) => ({
+        ...r,
+        created_at: r.created_at?.toISOString() ?? null,
+      }))}
     />
   );
 }

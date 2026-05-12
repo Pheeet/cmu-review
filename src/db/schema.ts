@@ -23,6 +23,7 @@ export const reviews = pgTable('reviews', {
   fingerprint_id: text('fingerprint_id'),
   report_count: integer('report_count').default(0),
   like_count: integer('like_count').default(0),
+  rating: integer('rating'),
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });
 
@@ -52,8 +53,17 @@ export const admins = pgTable('admins', {
   id: uuid('id').defaultRandom().primaryKey(),
   username: text('username').notNull().unique(),
   password_hash: text('password_hash').notNull(),
+  token_invalidated_at: timestamp('token_invalidated_at', { withTimezone: true }),
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
   last_login: timestamp('last_login', { withTimezone: true }),
+});
+
+export const course_requests = pgTable('course_requests', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  code: text('code').notNull(),
+  reason: text('reason'),
+  fingerprint_id: text('fingerprint_id').notNull(),
+  created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });
 
 export type Course = typeof courses.$inferSelect;

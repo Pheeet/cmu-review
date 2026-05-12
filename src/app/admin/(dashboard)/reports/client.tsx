@@ -20,26 +20,14 @@ interface ReviewItem {
   created_at: string | null;
 }
 
-type Tab = 'pending' | 'all';
-
 export function ReportsClient({
-  pending,
-  all,
+  reviews,
 }: {
-  pending: ReviewItem[];
-  all: ReviewItem[];
+  reviews: ReviewItem[];
 }) {
-  const [tab, setTab] = useState<Tab>('pending');
   const [optimisticIds, setOptimisticIds] = useState<Set<string>>(new Set());
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
-
-  const tabs: { key: Tab; label: string; items: ReviewItem[] }[] = [
-    { key: 'pending', label: 'รอดำเนินการ', items: pending },
-    { key: 'all', label: 'ทั้งหมด', items: all },
-  ];
-
-  const current = tabs.find((t) => t.key === tab)!;
 
   const handleDismiss = (id: string) => {
     setOptimisticIds((prev) => new Set(prev).add(id));
@@ -86,37 +74,16 @@ export function ReportsClient({
   };
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-extrabold text-neutral-900 tracking-tight">รายงานรีวิว</h1>
-
-      {/* Tabs */}
-      <div className="flex gap-1 bg-white rounded-xl border border-neutral-200 p-1 shadow-sm">
-        {tabs.map((t) => (
-          <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors flex-1 justify-center ${
-              tab === t.key
-                ? 'bg-[#9E76B4] text-white shadow-sm'
-                : 'text-neutral-500 hover:bg-neutral-50'
-            }`}
-          >
-            {t.label}
-            <span
-              className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                tab === t.key ? 'bg-white/20 text-white' : 'bg-neutral-100 text-neutral-500'
-              }`}
-            >
-              {t.items.length}
-            </span>
-          </button>
-        ))}
+    <div className="space-y-6 pt-14 lg:pt-0">
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-neutral-900 tracking-tight">รีวิวที่ถูกรายงาน</h1>
+        <p className="text-sm text-neutral-400 mt-1">ตรวจสอบและจัดการรีวิวที่ถูกรายงานโดยผู้ใช้</p>
       </div>
 
       {/* Review Cards */}
       <div className="space-y-3">
         <AnimatePresence mode="popLayout">
-          {current.items.map((r) => {
+          {reviews.map((r) => {
             const isOptimistic = optimisticIds.has(r.id);
             return (
               <motion.div
@@ -126,17 +93,17 @@ export function ReportsClient({
                 animate={{ opacity: isOptimistic ? 0.4 : 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
                 transition={{ duration: 0.25 }}
-                className="bg-white rounded-xl border border-neutral-200 shadow-sm overflow-hidden"
+                className="bg-white rounded-2xl border border-neutral-200/80 shadow-sm overflow-hidden"
               >
                 {/* Header */}
-                <div className="flex flex-wrap items-center justify-between gap-2 px-5 py-3 border-b border-neutral-50 bg-neutral-50/50">
-                  <div className="flex items-center gap-2.5">
+                <div className="flex items-center justify-between gap-2 px-5 py-3 border-b border-neutral-50 bg-neutral-50/50">
+                  <div className="flex items-center gap-2.5 min-w-0">
                     <span className="font-mono font-bold text-sm text-[#9E76B4]">{r.course_code}</span>
-                    <span className="text-sm text-neutral-500 truncate max-w-[200px]">{r.course_name}</span>
+                    <span className="text-sm text-neutral-500 truncate">{r.course_name}</span>
                   </div>
-                  <span className="text-xs font-bold bg-red-500 text-white px-2.5 py-1 rounded-full">
-                    <AlertTriangle className="w-3 h-3 inline mr-1 -mt-0.5" />
-                    {r.report_count} reports
+                  <span className="text-xs font-bold bg-red-500 text-white px-2 py-1 rounded-full flex-shrink-0 whitespace-nowrap">
+                    <AlertTriangle className="w-3 h-3 inline mr-1 -mt-0.5 hidden sm:inline" />
+                    {r.report_count} <span className="hidden sm:inline">รายงาน</span>
                   </span>
                 </div>
 
@@ -186,10 +153,10 @@ export function ReportsClient({
           })}
         </AnimatePresence>
 
-        {current.items.length === 0 && (
-          <div className="text-center py-16 bg-white rounded-xl border border-neutral-200">
+        {reviews.length === 0 && (
+          <div className="text-center py-16 bg-white rounded-2xl border border-neutral-200/80">
             <AlertTriangle className="w-10 h-10 text-neutral-200 mx-auto mb-3" />
-            <p className="text-neutral-400 text-sm font-medium">ไม่มีรีวิวในหมวดนี้</p>
+            <p className="text-neutral-400 text-sm font-medium">ไม่มีรีวิวที่ถูกรายงาน</p>
           </div>
         )}
       </div>

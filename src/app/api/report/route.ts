@@ -7,6 +7,13 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
+    // CSRF: reject requests from external origins
+    const origin = request.headers.get('origin');
+    const host = request.headers.get('host');
+    if (origin && host && !origin.includes(host)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const { reviewId, fingerprintId } = await request.json();
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0] ?? 'unknown';
 

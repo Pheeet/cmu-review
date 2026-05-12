@@ -39,6 +39,7 @@ export async function submitReview(payload: {
   comment: string;
   reviewer_name: string | null;
   fingerprint_id: string | null;
+  rating: number | null;
 }) {
   // Server-side validation
   if (!payload.comment || payload.comment.trim().length < 20) {
@@ -99,6 +100,20 @@ export async function submitReview(payload: {
       }
     } catch (e) {
       console.error('Fingerprint rate limit check failed:', e);
+    }
+  }
+
+  // Check if already reviewed this course
+  if (payload.fingerprint_id) {
+    try {
+      const existing = await db.select({ id: reviewsTable.id }).from(reviewsTable)
+        .where(and(eq(reviewsTable.course_id, payload.course_id), eq(reviewsTable.fingerprint_id, payload.fingerprint_id)))
+        .limit(1);
+      if (existing.length > 0) {
+        return { success: false, error: 'คุณได้รีวิววิชานี้ไปแล้ว' };
+      }
+    } catch (e) {
+      console.error('Duplicate check failed:', e);
     }
   }
 

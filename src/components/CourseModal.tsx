@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Course, Review } from '@/types';
 import { X, AlertTriangle, BookOpen, Clock, Tag, MessageSquare, ThumbsUp, CheckCircle } from 'lucide-react';
@@ -201,9 +201,34 @@ export function CourseModal({ course, onClose }: { course: Course; onClose: () =
 
   const fc = getFacultyColor(course.faculty);
 
+  // Grade distribution
+  const gradeDistribution = useMemo(() => {
+    const withGrade = reviews.filter(r => r.grade && r.grade !== 'ไม่ระบุ');
+    if (withGrade.length === 0) return null;
+
+    const order = ['A', 'B+', 'B', 'C+', 'C', 'D+', 'D', 'F', 'W', 'S', 'U'];
+    const colors: Record<string, string> = {
+      'A': 'bg-emerald-500', 'B+': 'bg-emerald-400', 'B': 'bg-emerald-300',
+      'C+': 'bg-amber-400', 'C': 'bg-amber-500',
+      'D+': 'bg-orange-400', 'D': 'bg-orange-500',
+      'F': 'bg-red-500', 'W': 'bg-neutral-400',
+      'S': 'bg-blue-400', 'U': 'bg-red-400',
+    };
+
+    const counts: Record<string, number> = {};
+    for (const r of withGrade) {
+      counts[r.grade!] = (counts[r.grade!] || 0) + 1;
+    }
+
+    const total = withGrade.length;
+    return order
+      .filter(g => counts[g])
+      .map(g => ({ grade: g, count: counts[g], pct: Math.round((counts[g] / total) * 100), color: colors[g] || 'bg-purple-400' }));
+  }, [reviews]);
+
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6">
+      <div className="fixed inset-0 z-50 sm:flex sm:items-center sm:justify-center sm:p-6 overflow-hidden">
       {/* Backdrop */}
       <motion.div
         initial={{ opacity: 0 }}
@@ -219,7 +244,7 @@ export function CourseModal({ course, onClose }: { course: Course; onClose: () =
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 40 }}
         transition={{ duration: 0.25, ease: [0.32, 0.72, 0, 1] }}
-        className="relative rounded-t-3xl sm:rounded-2xl shadow-2xl w-full max-w-3xl h-[92vh] sm:h-auto sm:max-h-[90vh] flex flex-col bg-[#F9F8F6]"
+        className="fixed inset-x-0 bottom-0 sm:relative sm:inset-auto sm:bottom-auto sm:mx-auto sm:max-w-3xl h-[92vh] sm:h-auto sm:max-h-[90vh] flex flex-col bg-[#F9F8F6] rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden"
       >
         <div className="overflow-y-auto overflow-x-hidden flex-1 pb-4 rounded-t-3xl sm:rounded-t-2xl">
           {/* Mobile Handle */}
@@ -292,6 +317,46 @@ export function CourseModal({ course, onClose }: { course: Course; onClose: () =
         {/* ── ZONE 3: Reviews + Form ── */}
         <div className="px-5 sm:px-8 py-7 space-y-8" style={{ background: '#F9F8F6' }}>
 
+          {/* Grade Distribution — Stacked Bar */}
+          {!loadingReviews && gradeDistribution && (
+            <div className="bg-white rounded-xl border border-neutral-150 p-4 sm:p-5 shadow-sm" style={{ borderColor: '#E8E8E6' }}>
+              <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                <Tag className="w-3.5 h-3.5" />
+                สัดส่วนเกรด
+              </h4>
+              <p className="text-sm text-neutral-500 mb-4">
+                จากรีวิวทั้งหมด <span className="font-bold text-neutral-700">{reviews.length}</span> คน
+                <span className="text-neutral-300"> · </span>
+                ระบุเกรด <span className="font-bold text-neutral-700">{gradeDistribution.reduce((s, d) => s + d.count, 0)}</span> คน
+              </p>
+              {/* Stacked bar */}
+              <div className="flex h-7 sm:h-8 rounded-lg overflow-hidden bg-neutral-50">
+                {gradeDistribution.map(d => (
+                  <div
+                    key={d.grade}
+                    className={`${d.color} transition-all duration-500 flex items-center justify-center`}
+                    style={{ width: `${d.pct}%`, minWidth: d.pct >= 10 ? undefined : '4px' }}
+                    title={`${d.grade}: ${d.count} คน (${d.pct}%)`}
+                  >
+                    {d.pct >= 15 && (
+                      <span className="text-xs sm:text-sm font-bold text-white leading-none drop-shadow-sm">{d.grade}</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+              {/* Legend */}
+              <div className="flex flex-wrap gap-x-2.5 sm:gap-x-4 gap-y-1.5 mt-3">
+                {gradeDistribution.map(d => (
+                  <span key={d.grade} className="flex items-center gap-1.5 text-xs sm:text-sm text-neutral-600">
+                    <span className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full ${d.color} flex-shrink-0`} />
+                    <span className="font-bold">{d.grade}</span>
+                    <span className="text-neutral-400">{d.count}</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Reviews list */}
           <div>
             <h4 className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-4 flex items-center gap-2">
@@ -345,11 +410,16 @@ export function CourseModal({ course, onClose }: { course: Course; onClose: () =
                             เกรด {review.grade}
                           </span>
                         )}
-                        {review.semester !== 'ไม่ระบุ' && (
-                          <span className="text-xs font-medium bg-neutral-50 text-neutral-500 px-2.5 py-1 rounded-full border border-neutral-200 flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            ปี {review.academic_year} เทอม {review.semester}
-                          </span>
+                        {review.semester && review.semester !== 'ไม่ระบุ' && (
+                          <>
+                            <span className="text-xs font-medium bg-neutral-50 text-neutral-500 px-2.5 py-1 rounded-full border border-neutral-200 flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              ปี {review.academic_year}
+                            </span>
+                            <span className="text-xs font-medium bg-neutral-50 text-neutral-500 px-2.5 py-1 rounded-full border border-neutral-200">
+                              {review.semester === '3' ? 'Summer' : `เทอม ${review.semester}`}
+                            </span>
+                          </>
                         )}
                         {review.section_type !== 'ไม่ระบุ' && (
                           <span className="text-xs font-medium bg-neutral-50 text-neutral-500 px-2.5 py-1 rounded-full border border-neutral-200 flex items-center gap-1">

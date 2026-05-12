@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { jwtVerify } from 'jose';
 import { eq, gt, count } from 'drizzle-orm';
 import { db } from '@/db';
-import { reviews } from '@/db/schema';
+import { reviews, course_requests, courses } from '@/db/schema';
 import { AdminSidebar } from './sidebar';
 import { logoutAction } from '@/app/admin/actions';
 
@@ -21,24 +21,42 @@ async function getAdmin() {
   }
 }
 
-// Cached for 30s — avoids hitting DB on every sidebar navigation
-let cachedCount = 0;
-let cachedAt = 0;
+let cachedReportCount = 0;
+let cachedReportAt = 0;
 
 async function getPendingReportCount(): Promise<number> {
   const now = Date.now();
-  if (now - cachedAt < 30_000) return cachedCount;
+  if (now - cachedReportAt < 30_000) return cachedReportCount;
 
   try {
     const [result] = await db
       .select({ count: count() })
       .from(reviews)
       .where(gt(reviews.report_count, 0));
-    cachedCount = result.count;
-    cachedAt = now;
-    return cachedCount;
+    cachedReportCount = result.count;
+    cachedReportAt = now;
+    return cachedReportCount;
   } catch {
-    return cachedCount;
+    return cachedReportCount;
+  }
+}
+
+let cachedReqCount = 0;
+let cachedReqAt = 0;
+
+async function getCourseRequestCount(): Promise<number> {
+  const now = Date.now();
+  if (now - cachedReqAt < 30_000) return cachedReqCount;
+
+  try {
+    const [result] = await db
+      .select({ count: count() })
+      .from(course_requests);
+    cachedReqCount = result.count;
+    cachedReqAt = now;
+    return cachedReqCount;
+  } catch {
+    return cachedReqCount;
   }
 }
 
@@ -51,12 +69,15 @@ export default async function DashboardLayout({
   if (!admin) redirect('/admin/login');
 
   const pendingCount = await getPendingReportCount();
+  const requestCount = await getCourseRequestCount();
 
   return (
     <div className="flex min-h-screen">
-      <AdminSidebar username={admin.username} pendingReportCount={pendingCount} logoutAction={logoutAction} />
-      <main className="flex-1 ml-[240px] bg-neutral-50 p-8 min-h-screen">
-        {children}
+      <AdminSidebar username={admin.username} pendingReportCount={pendingCount} hasCourseRequests={requestCount > 0} logoutAction={logoutAction} />
+      <main className="flex-1 lg:ml-[240px] bg-[#FAF9F5] p-4 sm:p-6 lg:p-8 min-h-screen">
+        <div className="max-w-[1600px] mx-auto">
+          {children}
+        </div>
       </main>
     </div>
   );
