@@ -90,7 +90,7 @@ export async function GET(request: Request) {
         END DESC NULLS LAST, ${coursesTable.code} ASC
       `;
     } else if (sort === 'rating') {
-      orderByClause = sql`${statsSubquery.avg_rating} DESC NULLS LAST, ${coursesTable.code} ASC`;
+      orderByClause = sql`COALESCE(${statsSubquery.avg_rating}, 0) DESC NULLS LAST, COALESCE(${statsSubquery.rating_count}, 0) DESC, ${coursesTable.code} ASC`;
     } else {
       orderByClause = sql`${coursesTable.code} ASC`;
     }
