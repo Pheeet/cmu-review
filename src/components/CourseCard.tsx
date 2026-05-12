@@ -71,7 +71,7 @@ export function CourseCard({ course, reviewCount, avgGrade, modeGrade, avgRating
         <div className="mt-auto pt-3 border-t border-neutral-100">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
-              {avgRating && ratingCount >= 3 && (
+              {avgRating && (
                 <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#9E76B4] text-white rounded-full text-[10px] font-bold shadow-sm">
                   <Star className="w-2.5 h-2.5 fill-current" />
                   {avgRating}
