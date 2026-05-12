@@ -10,10 +10,13 @@ interface CourseCardProps {
   course: Course;
   reviewCount: number;
   avgGrade?: string | null;
+  modeGrade?: string | null;
+  avgRating?: number | null;
+  ratingCount?: number;
   onClick: () => void;
 }
 
-export function CourseCard({ course, reviewCount, avgGrade, onClick }: CourseCardProps) {
+export function CourseCard({ course, reviewCount, avgGrade, modeGrade, avgRating, ratingCount = 0, onClick }: CourseCardProps) {
   const fc = getFacultyColor(course.faculty);
 
   return (
@@ -66,12 +69,17 @@ export function CourseCard({ course, reviewCount, avgGrade, onClick }: CourseCar
 
         {/* Footer */}
         <div className="mt-auto pt-3 border-t border-neutral-100">
-          <div className="flex items-center justify-between h-6">
-            <div className="flex-1">
-              {reviewCount > 0 && avgGrade && (
-                <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-500 text-white rounded-full text-[10px] font-bold shadow-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              {avgRating && ratingCount >= 3 && (
+                <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#9E76B4] text-white rounded-full text-[10px] font-bold shadow-sm">
                   <Star className="w-2.5 h-2.5 fill-current" />
-                  {avgGrade}
+                  {avgRating}
+                </div>
+              )}
+              {modeGrade && (
+                <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-500 text-white rounded-full text-[10px] font-bold shadow-sm">
+                  เกรด {modeGrade}
                 </div>
               )}
             </div>

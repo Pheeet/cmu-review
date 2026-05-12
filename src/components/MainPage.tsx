@@ -2,21 +2,22 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, GraduationCap, ChevronDown, SlidersHorizontal, X } from 'lucide-react';
+import { Search, GraduationCap, ChevronDown, SlidersHorizontal, X, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { CourseCard } from '@/components/CourseCard';
 import { CourseModal } from '@/components/CourseModal';
 import { Course } from '@/types';
 import { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 
 interface MainPageProps {
   initialCourses: Course[];
-  initialStats: Record<string, { count: number; avg: string | null }>;
+  initialStats: Record<string, { count: number; avg: string | null; modeGrade: string | null; avgRating: number | null; ratingCount: number }>;
   initialTotalCount: number;
   faculties: string[];
   creditOptions: number[];
 }
 
-type SortKey = 'code' | 'reviews' | 'name' | 'grade';
+type SortKey = 'code' | 'reviews' | 'name' | 'grade' | 'rating';
 
 import { useDebounce } from 'use-debounce';
 
@@ -61,13 +62,13 @@ function Dropdown<T extends string>({
                 key={opt.value}
                 value={opt.value}
                 className={({ active }) =>
-                  `flex items-center h-11 gap-2 px-4 text-sm cursor-pointer select-none transition-colors rounded-xl ${active ? 'bg-purple-50 text-[#9E76B4]' : 'text-neutral-700'
+                  `flex items-center min-h-[44px] py-2 gap-2 px-4 text-sm cursor-pointer select-none transition-colors rounded-xl ${active ? 'bg-purple-50 text-[#9E76B4]' : 'text-neutral-700'
                   }`
                 }
               >
                 {({ selected }) => (
                   <>
-                    <span className="flex-1 truncate leading-none font-medium">{opt.label}</span>
+                    <span className="flex-1 truncate leading-normal font-medium">{opt.label}</span>
                     {selected && <Check className="w-3.5 h-3.5 text-[#9E76B4] flex-shrink-0" />}
                   </>
                 )}
@@ -113,6 +114,7 @@ function FilterBar({
     { value: 'reviews', label: 'รีวิวมากที่สุด' },
     { value: 'name', label: 'เรียงตามชื่อ A–Z' },
     { value: 'grade', label: 'เรียงตามเกรด' },
+    { value: 'rating', label: 'เรียงตามความน่าเรียน' },
   ];
 
   return (
@@ -242,6 +244,10 @@ export function MainPage({
   const [totalCount, setTotalCount] = useState(initialTotalCount);
   const [selected, setSelected] = useState<Course | null>(null);
   const [localQuery, setLocalQuery] = useState('');
+  const [showRequestModal, setShowRequestModal] = useState(false);
+  const [requestCode, setRequestCode] = useState('');
+  const [requestReason, setRequestReason] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   // Filter/sort state
   const [query, setQuery] = useState('');
@@ -287,7 +293,7 @@ export function MainPage({
         credits: params?.credits ?? credits,
         sort: params?.sort ?? sort,
         page: pageNum.toString(),
-        limit: '24',
+        limit: '20',
       });
 
       const res = await fetch(`/api/courses?${searchParams.toString()}`);
@@ -317,6 +323,14 @@ export function MainPage({
     }
   };
 
+  const goToPage = (p: number) => {
+    if (p < 1 || p === page || loading) return;
+    const totalPages = Math.ceil(totalCount / 24);
+    if (p > totalPages) return;
+    fetchData(p, true, { search: debouncedQuery, faculty, credits, sort });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handleSearch = (q: string) => {
     setQuery(q);
     if (q.trim()) {
@@ -326,6 +340,39 @@ export function MainPage({
 
   // True when user has any active filter/search
   const isFiltering = debouncedQuery.trim().length > 0 || faculty !== 'all' || credits !== 'all';
+
+  const getFingerprint = async () => {
+    if (typeof window === 'undefined') return '';
+    const { default: FingerprintJS } = await import('@fingerprintjs/fingerprintjs');
+    const fp = await FingerprintJS.load();
+    const result = await fp.get();
+    return result.visitorId;
+  };
+
+  const submitRequest = async () => {
+    if (!requestCode.trim()) return;
+    setSubmitting(true);
+    try {
+      const fp = await getFingerprint();
+      const res = await fetch('/api/course-requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: requestCode.trim(), reason: requestReason.trim(), fingerprint_id: fp }),
+      });
+      if (res.ok) {
+        toast.success('ส่งคำขอแอดวิชาเพิ่มเรียบร้อย');
+        setShowRequestModal(false);
+        setRequestCode('');
+        setRequestReason('');
+      } else {
+        toast.error('เกิดข้อผิดพลาด');
+      }
+    } catch {
+      toast.error('เกิดข้อผิดพลาด');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   // Latch: once user interacts with filter, hero stays hidden for the session
   const [hasFiltered, setHasFiltered] = useState(false);
@@ -337,7 +384,7 @@ export function MainPage({
   const showHero = !hasFiltered;
 
   return (
-    <main className="min-h-screen flex flex-col bg-[#FAF9F5] text-neutral-900">
+    <main className="flex flex-col min-h-screen bg-[#FAF9F5] text-neutral-900">
       <Toaster position="bottom-center" />
 
       {/* ── Hero — hidden while searching/filtering ── */}
@@ -346,11 +393,12 @@ export function MainPage({
           <motion.section
             key="hero"
             exit={{ opacity: 0, transition: { duration: 0.2 } }}
-            className="relative overflow-hidden border-b border-neutral-200 min-h-screen flex items-center"
+            className="relative overflow-hidden border-b border-neutral-200 h-[100dvh] flex items-center flex-shrink-0"
             style={{
               backgroundImage: 'url(/namwan2.png)',
               backgroundSize: 'cover',
-              backgroundPosition: 'center',
+              backgroundPosition: 'center center',
+              backgroundRepeat: 'no-repeat',
             }}
           >
             <div className="absolute inset-0 bg-black/40 z-0" />
@@ -466,6 +514,14 @@ export function MainPage({
                 <Search className="w-12 h-12 text-neutral-300 mb-4" />
                 <p className="text-lg font-medium text-neutral-800">ไม่พบรายวิชาที่ค้นหา</p>
                 <p className="text-neutral-400 text-sm mt-1">ลองเปลี่ยนคำค้นหาหรือเลือกทุกคณะ</p>
+                {isFiltering && (
+                  <button
+                    onClick={() => setShowRequestModal(true)}
+                    className="mt-5 px-5 py-2.5 bg-[#9E76B4] hover:bg-[#8A5DA1] text-white text-sm font-semibold rounded-xl transition-colors"
+                  >
+                    ขอเพิ่มวิชา
+                  </button>
+                )}
               </motion.div>
             )}
           </AnimatePresence>
@@ -502,6 +558,9 @@ export function MainPage({
                       course={c}
                       reviewCount={reviewStats[c.id]?.count || 0}
                       avgGrade={reviewStats[c.id]?.avg}
+                      modeGrade={reviewStats[c.id]?.modeGrade}
+                      avgRating={reviewStats[c.id]?.avgRating}
+                      ratingCount={reviewStats[c.id]?.ratingCount || 0}
                       onClick={() => setSelected(c)}
                     />
                   </motion.div>
@@ -510,25 +569,77 @@ export function MainPage({
             </AnimatePresence>
           </div>
 
-          {/* Load More */}
-          {hasMore && (
-            <div className="mt-12 flex justify-center pb-12">
-              <button
-                onClick={handleLoadMore}
-                disabled={loading}
-                className="w-full flex items-center justify-center gap-2 py-3 bg-transparent border-2 border-[#9E76B4] text-[#9E76B4] hover:bg-purple-50 rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-[#9E76B4]/30 border-t-[#9E76B4] rounded-full animate-spin" />
-                    กำลังโหลด...
-                  </>
-                ) : (
-                  'โหลดเพิ่ม'
-                )}
-              </button>
-            </div>
-          )}
+          {/* Pagination */}
+          {totalCount > 16 && (() => {
+            const totalPages = Math.ceil(totalCount / 24);
+            const current = page;
+            const pages: (number | '...')[] = [];
+
+            if (totalPages <= 7) {
+              for (let i = 1; i <= totalPages; i++) pages.push(i);
+            } else {
+              pages.push(1);
+              if (current > 3) pages.push('...');
+              const start = Math.max(2, current - 1);
+              const end = Math.min(totalPages - 1, current + 1);
+              for (let i = start; i <= end; i++) pages.push(i);
+              if (current < totalPages - 2) pages.push('...');
+              pages.push(totalPages);
+            }
+
+            const btnBase = 'w-10 h-10 flex items-center justify-center rounded-xl text-sm font-semibold transition-all';
+            const btnActive = 'bg-[#9E76B4] text-white shadow-sm';
+            const btnInactive = 'text-neutral-600 hover:bg-purple-50 hover:text-[#9E76B4]';
+
+            return (
+              <div className="mt-10 flex justify-center pb-12">
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => goToPage(1)}
+                    disabled={current === 1 || loading}
+                    className={`${btnBase} ${current === 1 ? 'opacity-30 cursor-not-allowed' : btnInactive}`}
+                  >
+                    <ChevronsLeft className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => goToPage(current - 1)}
+                    disabled={current === 1 || loading}
+                    className={`${btnBase} ${current === 1 ? 'opacity-30 cursor-not-allowed' : btnInactive}`}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  {pages.map((p, i) =>
+                    p === '...' ? (
+                      <span key={`dots-${i}`} className="w-10 h-10 flex items-center justify-center text-neutral-400 text-sm">…</span>
+                    ) : (
+                      <button
+                        key={p}
+                        onClick={() => goToPage(p)}
+                        disabled={loading}
+                        className={`${btnBase} ${p === current ? btnActive : btnInactive} disabled:opacity-50`}
+                      >
+                        {p}
+                      </button>
+                    )
+                  )}
+                  <button
+                    onClick={() => goToPage(current + 1)}
+                    disabled={current === totalPages || loading}
+                    className={`${btnBase} ${current === totalPages ? 'opacity-30 cursor-not-allowed' : btnInactive}`}
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => goToPage(totalPages)}
+                    disabled={current === totalPages || loading}
+                    className={`${btnBase} ${current === totalPages ? 'opacity-30 cursor-not-allowed' : btnInactive}`}
+                  >
+                    <ChevronsRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
         </div>
       </section>
 
@@ -550,6 +661,78 @@ export function MainPage({
             course={selected}
             onClose={() => setSelected(null)}
           />
+        )}
+      </AnimatePresence>
+
+      {/* Course Request Modal */}
+      <AnimatePresence>
+        {showRequestModal && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+              onClick={() => setShowRequestModal(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 8 }}
+              transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }}
+              className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md border border-neutral-100"
+            >
+              <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-neutral-100">
+                <h3 className="text-lg font-extrabold text-neutral-900">ขอแอดวิชาเพิ่ม</h3>
+                <button
+                  onClick={() => setShowRequestModal(false)}
+                  className="p-2 rounded-full hover:bg-neutral-100 transition-colors text-neutral-400"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="px-6 py-5 space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-2">
+                    รหัสวิชา *
+                  </label>
+                  <input
+                    value={requestCode}
+                    onChange={(e) => setRequestCode(e.target.value.toUpperCase())}
+                    placeholder="เช่น 204111"
+                    className="w-full h-11 px-4 bg-neutral-50 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#9E76B4]/20 focus:border-[#9E76B4] transition-all font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-2">
+                    รายละเอียดวิชา <span className="text-neutral-400 normal-case font-normal">(ไม่จำเป็น)</span>
+                  </label>
+                  <textarea
+                    value={requestReason}
+                    onChange={(e) => setRequestReason(e.target.value)}
+                    placeholder="วิชานี้เกี่ยวกับอะไร..."
+                    rows={3}
+                    className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl text-sm focus:ring-2 focus:ring-[#9E76B4]/20 focus:border-[#9E76B4] outline-none transition-all resize-y"
+                  />
+                </div>
+              </div>
+              <div className="px-6 py-4 border-t border-neutral-100 flex gap-2 justify-end">
+                <button
+                  onClick={() => setShowRequestModal(false)}
+                  className="px-4 py-2.5 text-sm font-medium text-neutral-600 hover:bg-neutral-100 rounded-xl transition-colors"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  onClick={submitRequest}
+                  disabled={submitting || !requestCode.trim()}
+                  className="px-6 py-2.5 bg-[#9E76B4] hover:bg-[#8A5DA1] text-white font-bold text-sm rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+                >
+                  {submitting ? 'กำลังส่ง...' : 'ส่งคำร้อง'}
+                </button>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </main>

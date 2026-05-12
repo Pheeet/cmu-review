@@ -40,6 +40,10 @@ next-env.d.ts
 graphify-out/
 skills-lock.json
 
+# project docs
+security-review.md
+PROJECT_SUMMARY.md
+
 # temporary scripts and data
 combined_valid.json
 fix_neon_schema.js
